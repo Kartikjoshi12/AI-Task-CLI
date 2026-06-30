@@ -33,6 +33,14 @@ describe("MarkdownProvider", () => {
       expect(content).toContain("- [ ] Buy groceries #task-1");
     });
 
+    it("assigns a created timestamp", async () => {
+      const task = await provider.createTask({ description: "Timed task" });
+
+      expect(task.createdAt).toBeTruthy();
+      expect(() => new Date(task.createdAt)).not.toThrow();
+      expect(new Date(task.createdAt).getTime()).not.toBeNaN();
+    });
+
     it("auto-increments task IDs", async () => {
       const t1 = await provider.createTask({ description: "First" });
       const t2 = await provider.createTask({ description: "Second" });
@@ -155,6 +163,23 @@ describe("MarkdownProvider", () => {
       expect(tasks[0]).toMatchObject({ id: "task-1", description: "Buy milk", status: "todo" });
       expect(tasks[1]).toMatchObject({ id: "task-2", description: "Pay bills", status: "done" });
       expect(tasks[2]).toMatchObject({ id: "task-3", description: "Write docs", status: "doing" });
+    });
+
+    it("parses tasks with timestamps from pre-populated file", async () => {
+      writeFileSync(
+        join(dir, "tasks.md"),
+        "- [ ] Buy milk #task-1 @2024-06-01T10:00:00.000Z\n- [x] Pay bills #task-2 @2024-06-02T14:30:00.000Z\n",
+      );
+
+      const tasks = await provider.listTasks();
+      expect(tasks[0].createdAt).toBe("2024-06-01T10:00:00.000Z");
+      expect(tasks[1].createdAt).toBe("2024-06-02T14:30:00.000Z");
+    });
+
+    it("sets createdAt to empty string when no timestamp in file", async () => {
+      writeFileSync(join(dir, "tasks.md"), "- [ ] Legacy task #task-5\n");
+      const tasks = await provider.listTasks();
+      expect(tasks[0].createdAt).toBe("");
     });
 
     it("ignores malformed lines", async () => {

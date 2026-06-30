@@ -15,7 +15,7 @@ const MARKER_STATUS: Record<string, TaskStatus> = {
   x: "done",
 };
 
-const LINE_REGEX = /^- \[([ /x])\] (.+) #(task-\d+)$/;
+const LINE_REGEX = /^- \[([ /x])\] (.+) #(task-\d+)(?: @(.+))?$/;
 
 export class MarkdownProvider implements StorageProvider {
   private filePath: string;
@@ -27,7 +27,12 @@ export class MarkdownProvider implements StorageProvider {
   async createTask(input: { description: string }): Promise<Task> {
     const tasks = await this.readTasks();
     const id = this.nextId(tasks);
-    const task: Task = { id, description: input.description, status: "todo" };
+    const task: Task = {
+      id,
+      description: input.description,
+      status: "todo",
+      createdAt: new Date().toISOString(),
+    };
     tasks.push(task);
     await this.writeTasks(tasks);
     return task;
@@ -105,15 +110,15 @@ export class MarkdownProvider implements StorageProvider {
   private parseLine(line: string): Task | null {
     const match = line.match(LINE_REGEX);
     if (!match) return null;
-    const [, marker, description, id] = match;
+    const [, marker, description, id, createdAt] = match;
     const status = MARKER_STATUS[marker];
     if (!status) return null;
-    return { id, description, status };
+    return { id, description, status, createdAt: createdAt ?? "" };
   }
 
   private formatLine(task: Task): string {
     const marker = STATUS_MARKER[task.status];
-    return `- [${marker}] ${task.description} #${task.id}`;
+    return `- [${marker}] ${task.description} #${task.id} @${task.createdAt}`;
   }
 
   private nextId(tasks: Task[]): string {

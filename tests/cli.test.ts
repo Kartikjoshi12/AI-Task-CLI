@@ -25,4 +25,14 @@ describe("CLI scaffold", () => {
     const cmd = program.commands.find((c) => c.name() === "init");
     expect(cmd?.description()).toBeTruthy();
   });
+
+  it("registers the add command", () => {
+    const cmd = program.commands.find((c) => c.name() === "add");
+    expect(cmd).toBeDefined();
+  });
+
+  it("add command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "add");
+    expect(cmd?.description()).toBeTruthy();
+  });
 });

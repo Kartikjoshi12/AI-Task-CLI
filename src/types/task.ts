@@ -4,4 +4,5 @@ export interface Task {
   id: string;
   description: string;
   status: TaskStatus;
+  createdAt: string;
 }
