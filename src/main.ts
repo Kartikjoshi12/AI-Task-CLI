@@ -5,6 +5,7 @@ import { listCommand } from "./commands/list.js";
 import { showCommand } from "./commands/show.js";
 import { updateCommand } from "./commands/update.js";
 import { doneCommand } from "./commands/done.js";
+import { deleteCommand } from "./commands/delete.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -17,6 +18,7 @@ export function createProgram(): Command {
   program.addCommand(showCommand);
   program.addCommand(updateCommand);
   program.addCommand(doneCommand);
+  program.addCommand(deleteCommand);
 
   return program;
 }

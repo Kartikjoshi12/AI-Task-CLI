@@ -111,4 +111,26 @@ describe("CLI scaffold", () => {
     const help = cmd?.helpInformation() ?? "";
     expect(help).toContain("task-id");
   });
+
+  it("registers the delete command", () => {
+    const cmd = program.commands.find((c) => c.name() === "delete");
+    expect(cmd).toBeDefined();
+  });
+
+  it("delete command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "delete");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("delete command has a --force option", () => {
+    const cmd = program.commands.find((c) => c.name() === "delete");
+    const opt = cmd?.options.find((o) => o.long === "--force");
+    expect(opt).toBeDefined();
+  });
+
+  it("delete command help mentions the task-id argument", () => {
+    const cmd = program.commands.find((c) => c.name() === "delete");
+    const help = cmd?.helpInformation() ?? "";
+    expect(help).toContain("task-id");
+  });
 });
