@@ -32,17 +32,22 @@ function seedTask(
   description: string,
   created: string,
   updated?: string,
+  tags?: string,
 ) {
   const d = join(dir, "tasks");
   mkdirSync(d, { recursive: true });
   const marker = status === "done" ? "x" : status === "doing" ? "/" : " ";
   const updatedLine = updated ?? created;
-  const content = [
-    "---",
+  const front = [
     `id: ${id}`,
     `status: ${status}`,
     `created: ${created}`,
     `updated: ${updatedLine}`,
+  ];
+  if (tags) front.push(`tags: ${tags}`);
+  const content = [
+    "---",
+    ...front,
     "---",
     `- [${marker}] ${description}`,
     "",
@@ -89,13 +94,15 @@ describe("task show (CLI)", () => {
     expect(stdout).toContain("- [/] Write docs");
   });
 
-  it("shows tags when present in the description", () => {
+  it("shows tags when present", () => {
     seedTask(
       dir,
       "task-1",
       "todo",
-      "Fix login bug #bug #auth",
+      "Fix login bug",
       "2024-06-01T10:00:00.000Z",
+      undefined,
+      "bug, auth",
     );
 
     const { stdout } = runCli("show task-1", dir);

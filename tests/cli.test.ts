@@ -67,4 +67,32 @@ describe("CLI scaffold", () => {
     const help = cmd?.helpInformation() ?? "";
     expect(help).toContain("task-id");
   });
+
+  it("registers the update command", () => {
+    const cmd = program.commands.find((c) => c.name() === "update");
+    expect(cmd).toBeDefined();
+  });
+
+  it("update command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "update");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("update command has a --title option", () => {
+    const cmd = program.commands.find((c) => c.name() === "update");
+    const opt = cmd?.options.find((o) => o.long === "--title");
+    expect(opt).toBeDefined();
+  });
+
+  it("update command has a --content option", () => {
+    const cmd = program.commands.find((c) => c.name() === "update");
+    const opt = cmd?.options.find((o) => o.long === "--content");
+    expect(opt).toBeDefined();
+  });
+
+  it("update command has a --tags option", () => {
+    const cmd = program.commands.find((c) => c.name() === "update");
+    const opt = cmd?.options.find((o) => o.long === "--tags");
+    expect(opt).toBeDefined();
+  });
 });

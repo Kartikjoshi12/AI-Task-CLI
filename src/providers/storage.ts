@@ -8,7 +8,15 @@ export interface TaskFilter {
 export interface StorageProvider {
   createTask(input: { description: string }): Promise<Task>;
   getTaskById(id: string): Promise<Task | null>;
-  updateTask(id: string, input: { description?: string; status?: TaskStatus }): Promise<Task>;
+  updateTask(
+    id: string,
+    input: {
+      description?: string;
+      status?: TaskStatus;
+      tags?: string;
+      content?: string;
+    },
+  ): Promise<Task>;
   deleteTask(id: string): Promise<void>;
   listTasks(filter?: TaskFilter): Promise<Task[]>;
 }

@@ -22,8 +22,17 @@ function readTask(dir: string, id: string): string {
   return readFileSync(taskFile(dir, id), "utf-8");
 }
 
-function makeTask(id: string, status: string, desc: string, created?: string, updated?: string): string {
-  return `---\nid: ${id}\nstatus: ${status}\ncreated: ${created ?? ""}\nupdated: ${updated ?? created ?? ""}\n---\n${desc}\n`;
+function makeTask(
+  id: string,
+  status: string,
+  desc: string,
+  created?: string,
+  updated?: string,
+  tags?: string,
+): string {
+  let front = `id: ${id}\nstatus: ${status}\ncreated: ${created ?? ""}\nupdated: ${updated ?? created ?? ""}`;
+  if (tags) front += `\ntags: ${tags}`;
+  return `---\n${front}\n---\n${desc}\n`;
 }
 
 describe("MarkdownProvider", () => {
@@ -46,6 +55,8 @@ describe("MarkdownProvider", () => {
       expect(task.id).toBe("task-1");
       expect(task.description).toBe("Buy groceries");
       expect(task.status).toBe("todo");
+      expect(task.tags).toBe("");
+      expect(task.content).toBe("");
 
       const file = taskFile(dir, "task-1");
       expect(existsSync(file)).toBe(true);
@@ -111,6 +122,30 @@ describe("MarkdownProvider", () => {
 
       const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
       expect(content).toContain("- [ ] New");
+    });
+
+    it("updates tags", async () => {
+      const task = await provider.createTask({ description: "Task with tags" });
+      const updated = await provider.updateTask(task.id, {
+        tags: "bug, backend",
+      });
+
+      expect(updated.tags).toBe("bug, backend");
+
+      const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
+      expect(content).toContain("tags: bug, backend");
+    });
+
+    it("updates content", async () => {
+      const task = await provider.createTask({ description: "Task with content" });
+      const updated = await provider.updateTask(task.id, {
+        content: "Some notes here.",
+      });
+
+      expect(updated.content).toBe("Some notes here.");
+
+      const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
+      expect(content).toContain("Some notes here.");
     });
 
     it("throws for a non-existent task", async () => {

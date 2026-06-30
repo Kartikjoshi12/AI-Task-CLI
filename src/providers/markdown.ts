@@ -34,6 +34,8 @@ export class MarkdownProvider implements StorageProvider {
       status: "todo",
       createdAt: now,
       updatedAt: now,
+      tags: "",
+      content: "",
     };
     await this.writeTaskFile(task);
     return task;
@@ -52,7 +54,12 @@ export class MarkdownProvider implements StorageProvider {
 
   async updateTask(
     id: string,
-    input: { description?: string; status?: TaskStatus },
+    input: {
+      description?: string;
+      status?: TaskStatus;
+      tags?: string;
+      content?: string;
+    },
   ): Promise<Task> {
     const existing = await this.getTaskById(id);
     if (!existing) {
@@ -62,6 +69,8 @@ export class MarkdownProvider implements StorageProvider {
       ...existing,
       ...(input.description !== undefined && { description: input.description }),
       ...(input.status !== undefined && { status: input.status }),
+      ...(input.tags !== undefined && { tags: input.tags }),
+      ...(input.content !== undefined && { content: input.content }),
       updatedAt: new Date().toISOString(),
     };
     await this.writeTaskFile(updated);
@@ -129,13 +138,23 @@ export class MarkdownProvider implements StorageProvider {
       frontmatter[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
     }
 
-    const body = frontMatch[2].trim();
-    const taskMatch = body.match(LINE_REGEX);
+    const body = frontMatch[2];
+    const bodyLines = body.split("\n");
+    const firstLineIdx = bodyLines.findIndex((l) => l.trim().match(LINE_REGEX));
+    if (firstLineIdx === -1) return null;
+
+    const firstLine = bodyLines[firstLineIdx].trim();
+    const taskMatch = firstLine.match(LINE_REGEX);
     if (!taskMatch) return null;
 
     const [, marker, description] = taskMatch;
     const status = MARKER_STATUS[marker];
     if (!status) return null;
+
+    const contentRest = bodyLines
+      .slice(firstLineIdx + 1)
+      .join("\n")
+      .trim();
 
     return {
       id,
@@ -143,21 +162,34 @@ export class MarkdownProvider implements StorageProvider {
       status,
       createdAt: frontmatter.created ?? "",
       updatedAt: frontmatter.updated ?? "",
+      tags: frontmatter.tags ?? "",
+      content: contentRest,
     };
   }
 
   private formatFile(task: Task): string {
     const marker = STATUS_MARKER[task.status];
-    return [
-      "---",
-      `id: ${task.id}`,
-      `status: ${task.status}`,
-      `created: ${task.createdAt}`,
-      `updated: ${task.updatedAt}`,
-      "---",
-      `- [${marker}] ${task.description}`,
-      "",
-    ].join("\n");
+    const frontmatter: Record<string, string> = {
+      id: task.id,
+      status: task.status,
+      created: task.createdAt,
+      updated: task.updatedAt,
+    };
+    if (task.tags) {
+      frontmatter.tags = task.tags;
+    }
+
+    const header = Object.entries(frontmatter)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join("\n");
+
+    const lines = [`- [${marker}] ${task.description}`];
+    if (task.content) {
+      lines.push("");
+      lines.push(task.content);
+    }
+
+    return `---\n${header}\n---\n${lines.join("\n")}\n`;
   }
 
   private nextId(tasks: Task[]): string {
