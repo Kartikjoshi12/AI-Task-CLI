@@ -1,11 +1,29 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { MarkdownProvider } from "../../src/providers/markdown.js";
 
 function tempDir(): string {
   return mkdtempSync(join(tmpdir(), "task-test-"));
+}
+
+function taskFile(dir: string, id: string): string {
+  return join(dir, "tasks", `${id}.md`);
+}
+
+function writeTask(dir: string, id: string, content: string): void {
+  const d = join(dir, "tasks");
+  mkdirSync(d, { recursive: true });
+  writeFileSync(join(d, `${id}.md`), content, "utf-8");
+}
+
+function readTask(dir: string, id: string): string {
+  return readFileSync(taskFile(dir, id), "utf-8");
+}
+
+function makeTask(id: string, status: string, desc: string, created?: string): string {
+  return `---\nid: ${id}\nstatus: ${status}\ncreated: ${created ?? ""}\n---\n${desc}\n`;
 }
 
 describe("MarkdownProvider", () => {
@@ -22,15 +40,19 @@ describe("MarkdownProvider", () => {
   });
 
   describe("createTask", () => {
-    it("creates a task and writes it to a file", async () => {
+    it("creates a task and writes it to a file in tasks/", async () => {
       const task = await provider.createTask({ description: "Buy groceries" });
 
       expect(task.id).toBe("task-1");
       expect(task.description).toBe("Buy groceries");
       expect(task.status).toBe("todo");
 
-      const content = readFileSync(join(dir, "tasks.md"), "utf-8");
-      expect(content).toContain("- [ ] Buy groceries #task-1");
+      const file = taskFile(dir, "task-1");
+      expect(existsSync(file)).toBe(true);
+      const content = readFileSync(file, "utf-8");
+      expect(content).toContain("- [ ] Buy groceries");
+      expect(content).toContain("id: task-1");
+      expect(content).toContain("status: todo");
     });
 
     it("assigns a created timestamp", async () => {
@@ -72,8 +94,9 @@ describe("MarkdownProvider", () => {
       expect(updated.status).toBe("done");
       expect(updated.description).toBe("Do something");
 
-      const content = readFileSync(join(dir, "tasks.md"), "utf-8");
-      expect(content).toContain("- [x] Do something #task-1");
+      const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
+      expect(content).toContain("- [x] Do something");
+      expect(content).toContain("status: done");
     });
 
     it("updates the task description", async () => {
@@ -83,8 +106,8 @@ describe("MarkdownProvider", () => {
       expect(updated.description).toBe("New");
       expect(updated.status).toBe("todo");
 
-      const content = readFileSync(join(dir, "tasks.md"), "utf-8");
-      expect(content).toContain("- [ ] New #task-1");
+      const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
+      expect(content).toContain("- [ ] New");
     });
 
     it("throws for a non-existent task", async () => {
@@ -95,12 +118,13 @@ describe("MarkdownProvider", () => {
   });
 
   describe("deleteTask", () => {
-    it("deletes a task from the file", async () => {
+    it("deletes a task file from the tasks directory", async () => {
       const task = await provider.createTask({ description: "Delete me" });
       await provider.deleteTask(task.id);
 
       const found = await provider.getTaskById(task.id);
       expect(found).toBeNull();
+      expect(existsSync(taskFile(dir, task.id))).toBe(false);
     });
 
     it("throws for a non-existent task", async () => {
@@ -151,11 +175,10 @@ describe("MarkdownProvider", () => {
   });
 
   describe("file format", () => {
-    it("reads existing tasks from a pre-populated file", async () => {
-      writeFileSync(
-        join(dir, "tasks.md"),
-        "- [ ] Buy milk #task-1\n- [x] Pay bills #task-2\n- [/] Write docs #task-3\n",
-      );
+    it("reads existing tasks from pre-populated files", async () => {
+      writeTask(dir, "task-1", makeTask("task-1", "todo", "- [ ] Buy milk", "2024-01-01T00:00:00Z"));
+      writeTask(dir, "task-2", makeTask("task-2", "done", "- [x] Pay bills", "2024-01-02T00:00:00Z"));
+      writeTask(dir, "task-3", makeTask("task-3", "doing", "- [/] Write docs", "2024-01-03T00:00:00Z"));
 
       const tasks = await provider.listTasks();
       expect(tasks).toHaveLength(3);
@@ -165,10 +188,16 @@ describe("MarkdownProvider", () => {
       expect(tasks[2]).toMatchObject({ id: "task-3", description: "Write docs", status: "doing" });
     });
 
-    it("parses tasks with timestamps from pre-populated file", async () => {
-      writeFileSync(
-        join(dir, "tasks.md"),
-        "- [ ] Buy milk #task-1 @2024-06-01T10:00:00.000Z\n- [x] Pay bills #task-2 @2024-06-02T14:30:00.000Z\n",
+    it("parses created timestamp from file frontmatter", async () => {
+      writeTask(
+        dir,
+        "task-1",
+        makeTask("task-1", "todo", "- [ ] Buy milk", "2024-06-01T10:00:00.000Z"),
+      );
+      writeTask(
+        dir,
+        "task-2",
+        makeTask("task-2", "done", "- [x] Pay bills", "2024-06-02T14:30:00.000Z"),
       );
 
       const tasks = await provider.listTasks();
@@ -176,24 +205,23 @@ describe("MarkdownProvider", () => {
       expect(tasks[1].createdAt).toBe("2024-06-02T14:30:00.000Z");
     });
 
-    it("sets createdAt to empty string when no timestamp in file", async () => {
-      writeFileSync(join(dir, "tasks.md"), "- [ ] Legacy task #task-5\n");
+    it("sets createdAt to empty string when no frontmatter created field", async () => {
+      writeTask(dir, "task-5", makeTask("task-5", "todo", "- [ ] Legacy task"));
       const tasks = await provider.listTasks();
       expect(tasks[0].createdAt).toBe("");
     });
 
-    it("ignores malformed lines", async () => {
-      writeFileSync(
-        join(dir, "tasks.md"),
-        "- [ ] Valid task #task-1\nThis is not a task\n- [invalid] Broken #task-2\n- [ ] #task-3\n",
-      );
+    it("ignores malformed files", async () => {
+      writeTask(dir, "task-1", makeTask("task-1", "todo", "- [ ] Valid task", "2024-01-01T00:00:00Z"));
+      writeTask(dir, "bad-file", "this is not a valid task file");
+      writeTask(dir, "task-3", "no frontmatter here");
 
       const tasks = await provider.listTasks();
       expect(tasks).toHaveLength(1);
       expect(tasks[0].id).toBe("task-1");
     });
 
-    it("returns an empty list when the file does not exist", async () => {
+    it("returns an empty list when the tasks directory does not exist", async () => {
       const tasks = await provider.listTasks();
       expect(tasks).toHaveLength(0);
     });

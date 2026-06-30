@@ -1,5 +1,5 @@
-import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
+import { join } from "node:path";
 import type { Task, TaskStatus } from "../types/task.js";
 import type { StorageProvider, TaskFilter } from "./storage.js";
 
@@ -15,13 +15,13 @@ const MARKER_STATUS: Record<string, TaskStatus> = {
   x: "done",
 };
 
-const LINE_REGEX = /^- \[([ /x])\] (.+) #(task-\d+)(?: @(.+))?$/;
+const LINE_REGEX = /^- \[([ /x])\] (.+)$/;
 
 export class MarkdownProvider implements StorageProvider {
-  private filePath: string;
+  private tasksDir: string;
 
   constructor(vaultPath: string) {
-    this.filePath = join(vaultPath, "tasks.md");
+    this.tasksDir = join(vaultPath, "tasks");
   }
 
   async createTask(input: { description: string }): Promise<Task> {
@@ -33,43 +33,48 @@ export class MarkdownProvider implements StorageProvider {
       status: "todo",
       createdAt: new Date().toISOString(),
     };
-    tasks.push(task);
-    await this.writeTasks(tasks);
+    await this.writeTaskFile(task);
     return task;
   }
 
   async getTaskById(id: string): Promise<Task | null> {
-    const tasks = await this.readTasks();
-    return tasks.find((t) => t.id === id) ?? null;
+    const filePath = join(this.tasksDir, `${id}.md`);
+    try {
+      const content = await readFile(filePath, "utf-8");
+      return this.parseFile(content, id);
+    } catch (err: unknown) {
+      if (isNotFoundError(err)) return null;
+      throw err;
+    }
   }
 
   async updateTask(
     id: string,
     input: { description?: string; status?: TaskStatus },
   ): Promise<Task> {
-    const tasks = await this.readTasks();
-    const index = tasks.findIndex((t) => t.id === id);
-    if (index === -1) {
+    const existing = await this.getTaskById(id);
+    if (!existing) {
       throw new Error(`Task not found: ${id}`);
     }
     const updated: Task = {
-      ...tasks[index],
+      ...existing,
       ...(input.description !== undefined && { description: input.description }),
       ...(input.status !== undefined && { status: input.status }),
     };
-    tasks[index] = updated;
-    await this.writeTasks(tasks);
+    await this.writeTaskFile(updated);
     return updated;
   }
 
   async deleteTask(id: string): Promise<void> {
-    const tasks = await this.readTasks();
-    const index = tasks.findIndex((t) => t.id === id);
-    if (index === -1) {
-      throw new Error(`Task not found: ${id}`);
+    const filePath = join(this.tasksDir, `${id}.md`);
+    try {
+      await rm(filePath);
+    } catch (err: unknown) {
+      if (isNotFoundError(err)) {
+        throw new Error(`Task not found: ${id}`, { cause: err });
+      }
+      throw err;
     }
-    tasks.splice(index, 1);
-    await this.writeTasks(tasks);
   }
 
   async listTasks(filter?: TaskFilter): Promise<Task[]> {
@@ -86,13 +91,16 @@ export class MarkdownProvider implements StorageProvider {
 
   private async readTasks(): Promise<Task[]> {
     try {
-      const content = await readFile(this.filePath, "utf-8");
-      return content
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        .map((line) => this.parseLine(line))
-        .filter((t): t is Task => t !== null);
+      const files = await readdir(this.tasksDir);
+      const mdFiles = files.filter((f) => f.endsWith(".md")).sort();
+      const tasks: Task[] = [];
+      for (const file of mdFiles) {
+        const id = file.replace(/\.md$/, "");
+        const content = await readFile(join(this.tasksDir, file), "utf-8");
+        const task = this.parseFile(content, id);
+        if (task) tasks.push(task);
+      }
+      return tasks;
     } catch (err: unknown) {
       if (isNotFoundError(err)) {
         return [];
@@ -101,24 +109,42 @@ export class MarkdownProvider implements StorageProvider {
     }
   }
 
-  private async writeTasks(tasks: Task[]): Promise<void> {
-    const lines = tasks.map((t) => this.formatLine(t));
-    await mkdir(dirname(this.filePath), { recursive: true });
-    await writeFile(this.filePath, lines.join("\n") + "\n", "utf-8");
+  private async writeTaskFile(task: Task): Promise<void> {
+    const content = this.formatFile(task);
+    await mkdir(this.tasksDir, { recursive: true });
+    await writeFile(join(this.tasksDir, `${task.id}.md`), content, "utf-8");
   }
 
-  private parseLine(line: string): Task | null {
-    const match = line.match(LINE_REGEX);
-    if (!match) return null;
-    const [, marker, description, id, createdAt] = match;
+  private parseFile(content: string, id: string): Task | null {
+    const frontMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    if (!frontMatch) return null;
+
+    const frontmatter: Record<string, string> = {};
+    for (const line of frontMatch[1].split("\n")) {
+      const idx = line.indexOf(":");
+      if (idx === -1) continue;
+      frontmatter[line.slice(0, idx).trim()] = line.slice(idx + 1).trim();
+    }
+
+    const body = frontMatch[2].trim();
+    const taskMatch = body.match(LINE_REGEX);
+    if (!taskMatch) return null;
+
+    const [, marker, description] = taskMatch;
     const status = MARKER_STATUS[marker];
     if (!status) return null;
-    return { id, description, status, createdAt: createdAt ?? "" };
+
+    return {
+      id,
+      description,
+      status,
+      createdAt: frontmatter.created ?? "",
+    };
   }
 
-  private formatLine(task: Task): string {
+  private formatFile(task: Task): string {
     const marker = STATUS_MARKER[task.status];
-    return `- [${marker}] ${task.description} #${task.id} @${task.createdAt}`;
+    return `---\nid: ${task.id}\nstatus: ${task.status}\ncreated: ${task.createdAt}\n---\n- [${marker}] ${task.description}\n`;
   }
 
   private nextId(tasks: Task[]): string {

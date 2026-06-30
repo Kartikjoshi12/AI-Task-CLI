@@ -35,4 +35,20 @@ describe("CLI scaffold", () => {
     const cmd = program.commands.find((c) => c.name() === "add");
     expect(cmd?.description()).toBeTruthy();
   });
+
+  it("registers the list command", () => {
+    const cmd = program.commands.find((c) => c.name() === "list");
+    expect(cmd).toBeDefined();
+  });
+
+  it("list command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "list");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("list command has a --status option", () => {
+    const cmd = program.commands.find((c) => c.name() === "list");
+    const opt = cmd?.options.find((o) => o.long === "--status");
+    expect(opt).toBeDefined();
+  });
 });

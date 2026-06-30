@@ -42,10 +42,11 @@ describe("task add (CLI)", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("Created task task-1");
 
-    const tasksFile = join(dir, "tasks.md");
-    expect(existsSync(tasksFile)).toBe(true);
-    const content = readFileSync(tasksFile, "utf-8");
-    expect(content).toContain("- [ ] Buy groceries #task-1");
+    const taskFile = join(dir, "tasks", "task-1.md");
+    expect(existsSync(taskFile)).toBe(true);
+    const content = readFileSync(taskFile, "utf-8");
+    expect(content).toContain("- [ ] Buy groceries");
+    expect(content).toContain("id: task-1");
   });
 
   it("creates multiple tasks with incrementing IDs", () => {
