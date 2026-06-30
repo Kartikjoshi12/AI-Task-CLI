@@ -7,6 +7,10 @@ import { updateCommand } from "./commands/update.js";
 import { doneCommand } from "./commands/done.js";
 import { deleteCommand } from "./commands/delete.js";
 import { searchCommand } from "./commands/search.js";
+import { pendingCommand } from "./commands/pending.js";
+import { completedCommand } from "./commands/completed.js";
+import { todayCommand } from "./commands/today.js";
+import { statsCommand } from "./commands/stats.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -21,6 +25,10 @@ export function createProgram(): Command {
   program.addCommand(doneCommand);
   program.addCommand(deleteCommand);
   program.addCommand(searchCommand);
+  program.addCommand(pendingCommand);
+  program.addCommand(completedCommand);
+  program.addCommand(todayCommand);
+  program.addCommand(statsCommand);
 
   return program;
 }

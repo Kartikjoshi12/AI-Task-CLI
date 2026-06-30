@@ -155,4 +155,44 @@ describe("CLI scaffold", () => {
     const help = cmd?.helpInformation() ?? "";
     expect(help).toContain("query");
   });
+
+  it("registers the pending command", () => {
+    const cmd = program.commands.find((c) => c.name() === "pending");
+    expect(cmd).toBeDefined();
+  });
+
+  it("pending command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "pending");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("registers the completed command", () => {
+    const cmd = program.commands.find((c) => c.name() === "completed");
+    expect(cmd).toBeDefined();
+  });
+
+  it("completed command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "completed");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("registers the today command", () => {
+    const cmd = program.commands.find((c) => c.name() === "today");
+    expect(cmd).toBeDefined();
+  });
+
+  it("today command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "today");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("registers the stats command", () => {
+    const cmd = program.commands.find((c) => c.name() === "stats");
+    expect(cmd).toBeDefined();
+  });
+
+  it("stats command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "stats");
+    expect(cmd?.description()).toBeTruthy();
+  });
 });
