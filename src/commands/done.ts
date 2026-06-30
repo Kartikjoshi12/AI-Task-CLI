@@ -1,35 +1,26 @@
 import { Command } from "commander";
-import { createProvider } from "../config.js";
+import { ConfigService } from "../services/config.js";
+import { TaskService } from "../services/task.js";
+import { Renderer } from "../renderer.js";
 
 export const doneCommand = new Command("done")
   .argument("<task-id>", "task ID to mark as done")
   .description("Mark a task as completed")
   .action(async (taskId: string) => {
-    const trimmed = taskId.trim();
-    if (!trimmed) {
-      console.error("Error: Task ID is required");
-      process.exit(1);
-    }
-
-    const provider = createProvider(process.cwd());
-
     try {
-      const existing = await provider.getTaskById(trimmed);
-      if (!existing) {
-        console.error(`Error: Task not found: ${trimmed}`);
-        process.exit(1);
-      }
-
-      if (existing.status === "done") {
-        console.log(`Task ${trimmed} is already done.`);
+      const config = new ConfigService(process.cwd());
+      const provider = config.createProvider();
+      const service = new TaskService(provider);
+      const renderer = new Renderer();
+      const { alreadyDone } = await service.markDone(taskId);
+      if (alreadyDone) {
+        renderer.message(`Task ${taskId} is already done.`);
         return;
       }
-
-      await provider.updateTask(trimmed, { status: "done" });
-      console.log(`Marked task ${trimmed} as done.`);
+      renderer.success(`Marked task ${taskId} as done.`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`Error: ${message}`);
+      new Renderer().error(message);
       process.exit(1);
     }
   });

@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import type { Task, TaskStatus } from "../types/task.js";
-import type { StorageProvider, TaskFilter } from "./storage.js";
+import type { StorageProvider, TaskFilter, CreateTaskInput, UpdateTaskInput } from "./storage.js";
 
 const STATUS_MARKER: Record<TaskStatus, string> = {
   todo: " ",
@@ -15,8 +15,6 @@ const MARKER_STATUS: Record<string, TaskStatus> = {
   x: "done",
 };
 
-const LINE_REGEX = /^- \[([ /x])\] (.+)$/;
-
 export class MarkdownProvider implements StorageProvider {
   private tasksDir: string;
   private defaultProject: string = "";
@@ -29,20 +27,27 @@ export class MarkdownProvider implements StorageProvider {
     this.defaultProject = project;
   }
 
-  async createTask(input: { description: string; project?: string }): Promise<Task> {
+  async createTask(input: CreateTaskInput): Promise<Task> {
     const tasks = await this.readTasks();
     const id = this.nextId(tasks);
     const now = new Date().toISOString();
     const task: Task = {
       id,
-      description: input.description,
+      title: input.title,
+      content: "",
       status: "todo",
+      workspace: "",
+      project: input.project ?? this.defaultProject ?? "",
+      priority: "none",
+      due: "",
+      tags: "",
+      assignee: "",
+      parent: "",
+      dependsOn: "",
+      recurring: "",
       createdAt: now,
       updatedAt: now,
       completedAt: "",
-      tags: "",
-      content: "",
-      project: input.project ?? this.defaultProject ?? "",
     };
     await this.writeTaskFile(task);
     return task;
@@ -59,16 +64,7 @@ export class MarkdownProvider implements StorageProvider {
     }
   }
 
-  async updateTask(
-    id: string,
-    input: {
-      description?: string;
-      status?: TaskStatus;
-      tags?: string;
-      content?: string;
-      project?: string;
-    },
-  ): Promise<Task> {
+  async updateTask(id: string, input: UpdateTaskInput): Promise<Task> {
     const existing = await this.getTaskById(id);
     if (!existing) {
       throw new Error(`Task not found: ${id}`);
@@ -84,10 +80,10 @@ export class MarkdownProvider implements StorageProvider {
     }
     const updated: Task = {
       ...existing,
-      ...(input.description !== undefined && { description: input.description }),
+      ...(input.title !== undefined && { title: input.title }),
+      ...(input.content !== undefined && { content: input.content }),
       ...(input.status !== undefined && { status: input.status }),
       ...(input.tags !== undefined && { tags: input.tags }),
-      ...(input.content !== undefined && { content: input.content }),
       ...(input.project !== undefined && { project: input.project }),
       completedAt,
       updatedAt: now,
@@ -117,7 +113,7 @@ export class MarkdownProvider implements StorageProvider {
       const lower = filter.keyword.toLowerCase();
       tasks = tasks.filter(
         (t) =>
-          t.description.toLowerCase().includes(lower) ||
+          t.title.toLowerCase().includes(lower) ||
           t.content.toLowerCase().includes(lower) ||
           t.tags.toLowerCase().includes(lower),
       );
@@ -167,14 +163,15 @@ export class MarkdownProvider implements StorageProvider {
 
     const body = frontMatch[2];
     const bodyLines = body.split("\n");
-    const firstLineIdx = bodyLines.findIndex((l) => l.trim().match(LINE_REGEX));
+    const lineRegex = /^- \[([ /x])\] (.+)$/;
+    const firstLineIdx = bodyLines.findIndex((l) => l.trim().match(lineRegex));
     if (firstLineIdx === -1) return null;
 
     const firstLine = bodyLines[firstLineIdx].trim();
-    const taskMatch = firstLine.match(LINE_REGEX);
+    const taskMatch = firstLine.match(lineRegex);
     if (!taskMatch) return null;
 
-    const [, marker, description] = taskMatch;
+    const [, marker, title] = taskMatch;
     const status = MARKER_STATUS[marker];
     if (!status) return null;
 
@@ -185,14 +182,21 @@ export class MarkdownProvider implements StorageProvider {
 
     return {
       id,
-      description,
+      title,
+      content: contentRest,
       status,
+      workspace: frontmatter.workspace ?? "",
+      project: frontmatter.project ?? "",
+      priority: (frontmatter.priority ?? "none") as Task["priority"],
+      due: frontmatter.due ?? "",
+      tags: frontmatter.tags ?? "",
+      assignee: frontmatter.assignee ?? "",
+      parent: frontmatter.parent ?? "",
+      dependsOn: frontmatter["depends-on"] ?? "",
+      recurring: frontmatter.recurring ?? "",
       createdAt: frontmatter.created ?? "",
       updatedAt: frontmatter.updated ?? "",
       completedAt: frontmatter.completed ?? "",
-      tags: frontmatter.tags ?? "",
-      content: contentRest,
-      project: frontmatter.project ?? "",
     };
   }
 
@@ -207,18 +211,18 @@ export class MarkdownProvider implements StorageProvider {
     if (task.completedAt) {
       frontmatter.completed = task.completedAt;
     }
-    if (task.tags) {
-      frontmatter.tags = task.tags;
-    }
     if (task.project) {
       frontmatter.project = task.project;
+    }
+    if (task.tags) {
+      frontmatter.tags = task.tags;
     }
 
     const header = Object.entries(frontmatter)
       .map(([k, v]) => `${k}: ${v}`)
       .join("\n");
 
-    const lines = [`- [${marker}] ${task.description}`];
+    const lines = [`- [${marker}] ${task.title}`];
     if (task.content) {
       lines.push("");
       lines.push(task.content);

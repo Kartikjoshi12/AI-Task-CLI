@@ -1,7 +1,8 @@
 import { Command } from "commander";
+import { Renderer } from "../renderer.js";
 
 export const initCommand = new Command("init")
   .description("Initialize a new workspace in the current directory")
   .action(() => {
-    console.log("Workspace initialized (coming soon)");
+    new Renderer().message("Workspace initialized (coming soon)");
   });

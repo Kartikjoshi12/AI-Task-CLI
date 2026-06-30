@@ -1,24 +1,28 @@
 import { Command } from "commander";
-import { createProvider } from "../config.js";
-import { printTaskTable } from "../display.js";
+import { ConfigService } from "../services/config.js";
+import { TaskService } from "../services/task.js";
+import { Renderer } from "../renderer.js";
 
 export const pendingCommand = new Command("pending")
   .description("Show all pending tasks")
   .action(async () => {
-    const provider = createProvider(process.cwd());
-
     try {
-      const tasks = await provider.listTasks({ status: "todo" });
+      const config = new ConfigService(process.cwd());
+      const provider = config.createProvider();
+      const service = new TaskService(provider);
+      const renderer = new Renderer();
+
+      const tasks = await service.listTasks({ status: "todo" });
 
       if (tasks.length === 0) {
-        console.log("No pending tasks.");
+        renderer.message("No pending tasks.");
         return;
       }
 
-      printTaskTable(tasks);
+      renderer.taskTable(tasks);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`Error: ${message}`);
+      new Renderer().error(message);
       process.exit(1);
     }
   });

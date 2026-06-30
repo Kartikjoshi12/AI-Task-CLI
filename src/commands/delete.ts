@@ -1,6 +1,8 @@
 import { Command } from "commander";
 import { createInterface } from "node:readline";
-import { createProvider } from "../config.js";
+import { ConfigService } from "../services/config.js";
+import { TaskService } from "../services/task.js";
+import { Renderer } from "../renderer.js";
 
 function promptYesNo(question: string): Promise<boolean> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -17,34 +19,27 @@ export const deleteCommand = new Command("delete")
   .option("-f, --force", "Skip confirmation prompt")
   .description("Delete a task")
   .action(async (taskId: string, options: { force?: boolean }) => {
-    const trimmed = taskId.trim();
-    if (!trimmed) {
-      console.error("Error: Task ID is required");
-      process.exit(1);
-    }
-
-    const provider = createProvider(process.cwd());
-
     try {
-      const existing = await provider.getTaskById(trimmed);
-      if (!existing) {
-        console.error(`Error: Task not found: ${trimmed}`);
-        process.exit(1);
-      }
+      const config = new ConfigService(process.cwd());
+      const provider = config.createProvider();
+      const service = new TaskService(provider);
+      const renderer = new Renderer();
+
+      await service.getTask(taskId); // ensure exists
 
       if (!options.force) {
         const ok = await promptYesNo("Are you sure? (y/N) ");
         if (!ok) {
-          console.log("Cancelled.");
+          renderer.message("Cancelled.");
           return;
         }
       }
 
-      await provider.deleteTask(trimmed);
-      console.log(`Deleted task ${trimmed}`);
+      await service.deleteTask(taskId);
+      renderer.success(`Deleted task ${taskId}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`Error: ${message}`);
+      new Renderer().error(message);
       process.exit(1);
     }
   });

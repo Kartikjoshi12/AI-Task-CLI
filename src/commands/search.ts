@@ -1,6 +1,7 @@
 import { Command } from "commander";
-import { createProvider } from "../config.js";
-import { printTaskTable } from "../display.js";
+import { ConfigService } from "../services/config.js";
+import { TaskService } from "../services/task.js";
+import { Renderer } from "../renderer.js";
 import type { TaskStatus } from "../types/task.js";
 
 export const searchCommand = new Command("search")
@@ -10,28 +11,31 @@ export const searchCommand = new Command("search")
   .action(async (query: string, options: { status?: string }) => {
     const trimmed = query.trim();
     if (!trimmed) {
-      console.error("Error: Search query is required");
+      new Renderer().error("Search query is required");
       process.exit(1);
     }
 
-    const provider = createProvider(process.cwd());
-
     try {
+      const config = new ConfigService(process.cwd());
+      const provider = config.createProvider();
+      const service = new TaskService(provider);
+      const renderer = new Renderer();
+
       const validStatus = isValidStatus(options.status) ? options.status : undefined;
-      const tasks = await provider.listTasks({
+      const tasks = await service.listTasks({
         keyword: trimmed,
         ...(validStatus ? { status: validStatus } : {}),
       });
 
       if (tasks.length === 0) {
-        console.log("No matching tasks found.");
+        renderer.message("No matching tasks found.");
         return;
       }
 
-      printTaskTable(tasks);
+      renderer.taskTable(tasks);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`Error: ${message}`);
+      new Renderer().error(message);
       process.exit(1);
     }
   });

@@ -6,19 +6,23 @@ export interface TaskFilter {
   project?: string;
 }
 
+export interface CreateTaskInput {
+  title: string;
+  project?: string;
+}
+
+export interface UpdateTaskInput {
+  title?: string;
+  content?: string;
+  status?: TaskStatus;
+  tags?: string;
+  project?: string;
+}
+
 export interface StorageProvider {
-  createTask(input: { description: string }): Promise<Task>;
+  createTask(input: CreateTaskInput): Promise<Task>;
   getTaskById(id: string): Promise<Task | null>;
-  updateTask(
-    id: string,
-    input: {
-      description?: string;
-      status?: TaskStatus;
-      tags?: string;
-      content?: string;
-      project?: string;
-    },
-  ): Promise<Task>;
+  updateTask(id: string, input: UpdateTaskInput): Promise<Task>;
   deleteTask(id: string): Promise<void>;
   listTasks(filter?: TaskFilter): Promise<Task[]>;
 }

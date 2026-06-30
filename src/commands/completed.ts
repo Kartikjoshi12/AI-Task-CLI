@@ -1,24 +1,28 @@
 import { Command } from "commander";
-import { createProvider } from "../config.js";
-import { printTaskTable } from "../display.js";
+import { ConfigService } from "../services/config.js";
+import { TaskService } from "../services/task.js";
+import { Renderer } from "../renderer.js";
 
 export const completedCommand = new Command("completed")
   .description("Show all completed tasks")
   .action(async () => {
-    const provider = createProvider(process.cwd());
-
     try {
-      const tasks = await provider.listTasks({ status: "done" });
+      const config = new ConfigService(process.cwd());
+      const provider = config.createProvider();
+      const service = new TaskService(provider);
+      const renderer = new Renderer();
+
+      const tasks = await service.listTasks({ status: "done" });
 
       if (tasks.length === 0) {
-        console.log("No completed tasks.");
+        renderer.message("No completed tasks.");
         return;
       }
 
-      printTaskTable(tasks);
+      renderer.taskTable(tasks);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`Error: ${message}`);
+      new Renderer().error(message);
       process.exit(1);
     }
   });

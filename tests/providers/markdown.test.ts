@@ -54,10 +54,10 @@ describe("MarkdownProvider", () => {
 
   describe("createTask", () => {
     it("creates a task and writes it to a file in tasks/", async () => {
-      const task = await provider.createTask({ description: "Buy groceries" });
+      const task = await provider.createTask({ title: "Buy groceries" });
 
       expect(task.id).toBe("task-1");
-      expect(task.description).toBe("Buy groceries");
+      expect(task.title).toBe("Buy groceries");
       expect(task.status).toBe("todo");
       expect(task.tags).toBe("");
       expect(task.content).toBe("");
@@ -72,7 +72,7 @@ describe("MarkdownProvider", () => {
     });
 
     it("assigns created and updated timestamps on creation", async () => {
-      const task = await provider.createTask({ description: "Timed task" });
+      const task = await provider.createTask({ title: "Timed task" });
 
       expect(task.createdAt).toBeTruthy();
       expect(() => new Date(task.createdAt)).not.toThrow();
@@ -82,8 +82,8 @@ describe("MarkdownProvider", () => {
     });
 
     it("auto-increments task IDs", async () => {
-      const t1 = await provider.createTask({ description: "First" });
-      const t2 = await provider.createTask({ description: "Second" });
+      const t1 = await provider.createTask({ title: "First" });
+      const t2 = await provider.createTask({ title: "Second" });
 
       expect(t1.id).toBe("task-1");
       expect(t2.id).toBe("task-2");
@@ -92,7 +92,7 @@ describe("MarkdownProvider", () => {
 
   describe("getTaskById", () => {
     it("returns a task by its ID", async () => {
-      const created = await provider.createTask({ description: "Find task" });
+      const created = await provider.createTask({ title: "Find task" });
       const found = await provider.getTaskById(created.id);
 
       expect(found).toEqual(created);
@@ -106,11 +106,11 @@ describe("MarkdownProvider", () => {
 
   describe("updateTask", () => {
     it("updates the task status", async () => {
-      const task = await provider.createTask({ description: "Do something" });
+      const task = await provider.createTask({ title: "Do something" });
       const updated = await provider.updateTask(task.id, { status: "done" });
 
       expect(updated.status).toBe("done");
-      expect(updated.description).toBe("Do something");
+      expect(updated.title).toBe("Do something");
       expect(updated.updatedAt).not.toBe(task.updatedAt);
       expect(updated.completedAt).toBeTruthy();
 
@@ -121,7 +121,7 @@ describe("MarkdownProvider", () => {
     });
 
     it("sets completedAt when marking a task done", async () => {
-      const task = await provider.createTask({ description: "Finish me" });
+      const task = await provider.createTask({ title: "Finish me" });
       const updated = await provider.updateTask(task.id, { status: "done" });
 
       expect(updated.completedAt).toBeTruthy();
@@ -130,7 +130,7 @@ describe("MarkdownProvider", () => {
     });
 
     it("clears completedAt when moving a done task back to todo", async () => {
-      const task = await provider.createTask({ description: "Reopen me" });
+      const task = await provider.createTask({ title: "Reopen me" });
       await provider.updateTask(task.id, { status: "done" });
 
       const reopened = await provider.updateTask(task.id, { status: "todo" });
@@ -139,20 +139,20 @@ describe("MarkdownProvider", () => {
     });
 
     it("preserves completedAt when updating description of a done task", async () => {
-      const task = await provider.createTask({ description: "Old desc" });
+      const task = await provider.createTask({ title: "Old desc" });
       const done = await provider.updateTask(task.id, { status: "done" });
       const completedAt = done.completedAt;
 
-      const updated = await provider.updateTask(task.id, { description: "New desc" });
+      const updated = await provider.updateTask(task.id, { title: "New desc" });
 
       expect(updated.completedAt).toBe(completedAt);
     });
 
     it("updates the task description", async () => {
-      const task = await provider.createTask({ description: "Old" });
-      const updated = await provider.updateTask(task.id, { description: "New" });
+      const task = await provider.createTask({ title: "Old" });
+      const updated = await provider.updateTask(task.id, { title: "New" });
 
-      expect(updated.description).toBe("New");
+      expect(updated.title).toBe("New");
       expect(updated.status).toBe("todo");
 
       const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
@@ -160,7 +160,7 @@ describe("MarkdownProvider", () => {
     });
 
     it("updates tags", async () => {
-      const task = await provider.createTask({ description: "Task with tags" });
+      const task = await provider.createTask({ title: "Task with tags" });
       const updated = await provider.updateTask(task.id, {
         tags: "bug, backend",
       });
@@ -172,7 +172,7 @@ describe("MarkdownProvider", () => {
     });
 
     it("updates content", async () => {
-      const task = await provider.createTask({ description: "Task with content" });
+      const task = await provider.createTask({ title: "Task with content" });
       const updated = await provider.updateTask(task.id, {
         content: "Some notes here.",
       });
@@ -192,7 +192,7 @@ describe("MarkdownProvider", () => {
 
   describe("deleteTask", () => {
     it("deletes a task file from the tasks directory", async () => {
-      const task = await provider.createTask({ description: "Delete me" });
+      const task = await provider.createTask({ title: "Delete me" });
       await provider.deleteTask(task.id);
 
       const found = await provider.getTaskById(task.id);
@@ -207,40 +207,40 @@ describe("MarkdownProvider", () => {
 
   describe("listTasks", () => {
     it("returns all tasks when no filter is given", async () => {
-      await provider.createTask({ description: "A" });
-      await provider.createTask({ description: "B" });
+      await provider.createTask({ title: "A" });
+      await provider.createTask({ title: "B" });
 
       const tasks = await provider.listTasks();
       expect(tasks).toHaveLength(2);
     });
 
     it("filters by status", async () => {
-      const t1 = await provider.createTask({ description: "Todo task" });
+      const t1 = await provider.createTask({ title: "Todo task" });
       await provider.updateTask(t1.id, { status: "done" });
-      await provider.createTask({ description: "Another todo" });
+      await provider.createTask({ title: "Another todo" });
 
       const todos = await provider.listTasks({ status: "todo" });
       expect(todos).toHaveLength(1);
-      expect(todos[0].description).toBe("Another todo");
+      expect(todos[0].title).toBe("Another todo");
 
       const dones = await provider.listTasks({ status: "done" });
       expect(dones).toHaveLength(1);
-      expect(dones[0].description).toBe("Todo task");
+      expect(dones[0].title).toBe("Todo task");
     });
 
     it("filters by keyword", async () => {
-      await provider.createTask({ description: "Fix login bug" });
-      await provider.createTask({ description: "Add tests" });
+      await provider.createTask({ title: "Fix login bug" });
+      await provider.createTask({ title: "Add tests" });
 
       const results = await provider.listTasks({ keyword: "login" });
       expect(results).toHaveLength(1);
-      expect(results[0].description).toBe("Fix login bug");
+      expect(results[0].title).toBe("Fix login bug");
     });
 
     it("combines status and keyword filters", async () => {
-      const t1 = await provider.createTask({ description: "Fix login bug" });
+      const t1 = await provider.createTask({ title: "Fix login bug" });
       await provider.updateTask(t1.id, { status: "done" });
-      await provider.createTask({ description: "Fix logout bug" });
+      await provider.createTask({ title: "Fix logout bug" });
 
       const results = await provider.listTasks({ status: "done", keyword: "login" });
       expect(results).toHaveLength(1);
@@ -256,9 +256,9 @@ describe("MarkdownProvider", () => {
       const tasks = await provider.listTasks();
       expect(tasks).toHaveLength(3);
 
-      expect(tasks[0]).toMatchObject({ id: "task-1", description: "Buy milk", status: "todo" });
-      expect(tasks[1]).toMatchObject({ id: "task-2", description: "Pay bills", status: "done", completedAt: "2024-01-03T00:00:00Z" });
-      expect(tasks[2]).toMatchObject({ id: "task-3", description: "Write docs", status: "doing" });
+      expect(tasks[0]).toMatchObject({ id: "task-1", title: "Buy milk", status: "todo" });
+      expect(tasks[1]).toMatchObject({ id: "task-2", title: "Pay bills", status: "done", completedAt: "2024-01-03T00:00:00Z" });
+      expect(tasks[2]).toMatchObject({ id: "task-3", title: "Write docs", status: "doing" });
     });
 
     it("parses created timestamp from file frontmatter", async () => {
@@ -351,21 +351,21 @@ describe("MarkdownProvider", () => {
     });
 
     it("createTask sets project from input", async () => {
-      const task = await provider.createTask({ description: "With project", project: "Booking" });
+      const task = await provider.createTask({ title: "With project", project: "Booking" });
       expect(task.project).toBe("Booking");
     });
 
     it("listTasks filters by project", async () => {
-      await provider.createTask({ description: "Task 1", project: "Booking" });
-      await provider.createTask({ description: "Task 2", project: "Auth" });
+      await provider.createTask({ title: "Task 1", project: "Booking" });
+      await provider.createTask({ title: "Task 2", project: "Auth" });
 
       const bookingTasks = await provider.listTasks({ project: "Booking" });
       expect(bookingTasks).toHaveLength(1);
-      expect(bookingTasks[0].description).toBe("Task 1");
+      expect(bookingTasks[0].title).toBe("Task 1");
 
       const authTasks = await provider.listTasks({ project: "Auth" });
       expect(authTasks).toHaveLength(1);
-      expect(authTasks[0].description).toBe("Task 2");
+      expect(authTasks[0].title).toBe("Task 2");
     });
   });
 });
