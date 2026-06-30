@@ -3,6 +3,7 @@ import type { Task, TaskStatus } from "../types/task.js";
 export interface TaskFilter {
   status?: TaskStatus;
   keyword?: string;
+  project?: string;
 }
 
 export interface StorageProvider {
@@ -15,6 +16,7 @@ export interface StorageProvider {
       status?: TaskStatus;
       tags?: string;
       content?: string;
+      project?: string;
     },
   ): Promise<Task>;
   deleteTask(id: string): Promise<void>;

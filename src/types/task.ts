@@ -9,4 +9,5 @@ export interface Task {
   completedAt: string;
   tags: string;
   content: string;
+  project: string;
 }

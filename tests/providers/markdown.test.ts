@@ -30,10 +30,12 @@ function makeTask(
   updated?: string,
   tags?: string,
   completed?: string,
+  project?: string,
 ): string {
   let front = `id: ${id}\nstatus: ${status}\ncreated: ${created ?? ""}\nupdated: ${updated ?? created ?? ""}`;
   if (tags) front += `\ntags: ${tags}`;
   if (completed) front += `\ncompleted: ${completed}`;
+  if (project) front += `\nproject: ${project}`;
   return `---\n${front}\n---\n${desc}\n`;
 }
 
@@ -320,6 +322,50 @@ describe("MarkdownProvider", () => {
     it("returns an empty list when the tasks directory does not exist", async () => {
       const tasks = await provider.listTasks();
       expect(tasks).toHaveLength(0);
+    });
+
+    it("parses project from frontmatter", async () => {
+      writeTask(
+        dir,
+        "task-1",
+        makeTask(
+          "task-1",
+          "todo",
+          "- [ ] Project task",
+          "2024-01-01T00:00:00Z",
+          "2024-01-01T00:00:00Z",
+          undefined,
+          undefined,
+          "Booking",
+        ),
+      );
+
+      const tasks = await provider.listTasks();
+      expect(tasks[0].project).toBe("Booking");
+    });
+
+    it("sets project to empty string when no frontmatter project field", async () => {
+      writeTask(dir, "task-1", makeTask("task-1", "todo", "- [ ] No project"));
+      const tasks = await provider.listTasks();
+      expect(tasks[0].project).toBe("");
+    });
+
+    it("createTask sets project from input", async () => {
+      const task = await provider.createTask({ description: "With project", project: "Booking" });
+      expect(task.project).toBe("Booking");
+    });
+
+    it("listTasks filters by project", async () => {
+      await provider.createTask({ description: "Task 1", project: "Booking" });
+      await provider.createTask({ description: "Task 2", project: "Auth" });
+
+      const bookingTasks = await provider.listTasks({ project: "Booking" });
+      expect(bookingTasks).toHaveLength(1);
+      expect(bookingTasks[0].description).toBe("Task 1");
+
+      const authTasks = await provider.listTasks({ project: "Auth" });
+      expect(authTasks).toHaveLength(1);
+      expect(authTasks[0].description).toBe("Task 2");
     });
   });
 });

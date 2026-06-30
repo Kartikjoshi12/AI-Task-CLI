@@ -19,12 +19,17 @@ const LINE_REGEX = /^- \[([ /x])\] (.+)$/;
 
 export class MarkdownProvider implements StorageProvider {
   private tasksDir: string;
+  private defaultProject: string = "";
 
   constructor(vaultPath: string, workspace: string = "default") {
     this.tasksDir = join(vaultPath, "workspaces", workspace, "tasks");
   }
 
-  async createTask(input: { description: string }): Promise<Task> {
+  setDefaultProject(project: string): void {
+    this.defaultProject = project;
+  }
+
+  async createTask(input: { description: string; project?: string }): Promise<Task> {
     const tasks = await this.readTasks();
     const id = this.nextId(tasks);
     const now = new Date().toISOString();
@@ -37,6 +42,7 @@ export class MarkdownProvider implements StorageProvider {
       completedAt: "",
       tags: "",
       content: "",
+      project: input.project ?? this.defaultProject ?? "",
     };
     await this.writeTaskFile(task);
     return task;
@@ -60,6 +66,7 @@ export class MarkdownProvider implements StorageProvider {
       status?: TaskStatus;
       tags?: string;
       content?: string;
+      project?: string;
     },
   ): Promise<Task> {
     const existing = await this.getTaskById(id);
@@ -81,6 +88,7 @@ export class MarkdownProvider implements StorageProvider {
       ...(input.status !== undefined && { status: input.status }),
       ...(input.tags !== undefined && { tags: input.tags }),
       ...(input.content !== undefined && { content: input.content }),
+      ...(input.project !== undefined && { project: input.project }),
       completedAt,
       updatedAt: now,
     };
@@ -113,6 +121,9 @@ export class MarkdownProvider implements StorageProvider {
           t.content.toLowerCase().includes(lower) ||
           t.tags.toLowerCase().includes(lower),
       );
+    }
+    if (filter?.project) {
+      tasks = tasks.filter((t) => t.project === filter.project);
     }
     return tasks;
   }
@@ -181,6 +192,7 @@ export class MarkdownProvider implements StorageProvider {
       completedAt: frontmatter.completed ?? "",
       tags: frontmatter.tags ?? "",
       content: contentRest,
+      project: frontmatter.project ?? "",
     };
   }
 
@@ -197,6 +209,9 @@ export class MarkdownProvider implements StorageProvider {
     }
     if (task.tags) {
       frontmatter.tags = task.tags;
+    }
+    if (task.project) {
+      frontmatter.project = task.project;
     }
 
     const header = Object.entries(frontmatter)

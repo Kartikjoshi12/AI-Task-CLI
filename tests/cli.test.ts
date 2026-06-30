@@ -229,4 +229,38 @@ describe("CLI scaffold", () => {
     const sub = cmd?.commands.find((c) => c.name() === "current");
     expect(sub).toBeDefined();
   });
+
+  it("registers the project command", () => {
+    const cmd = program.commands.find((c) => c.name() === "project");
+    expect(cmd).toBeDefined();
+  });
+
+  it("project command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "project");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("project command has list subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "project");
+    const sub = cmd?.commands.find((c) => c.name() === "list");
+    expect(sub).toBeDefined();
+  });
+
+  it("project command has create subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "project");
+    const sub = cmd?.commands.find((c) => c.name() === "create");
+    expect(sub).toBeDefined();
+  });
+
+  it("project command has use subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "project");
+    const sub = cmd?.commands.find((c) => c.name() === "use");
+    expect(sub).toBeDefined();
+  });
+
+  it("project command has current subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "project");
+    const sub = cmd?.commands.find((c) => c.name() === "current");
+    expect(sub).toBeDefined();
+  });
 });
