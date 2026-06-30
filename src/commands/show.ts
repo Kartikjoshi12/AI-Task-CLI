@@ -38,6 +38,9 @@ export const showCommand = new Command("show")
       console.log(`Status:  ${task.status}`);
       console.log(`Created: ${formatDate(task.createdAt)}`);
       console.log(`Updated: ${formatDate(task.updatedAt)}`);
+      if (task.completedAt) {
+        console.log(`Completed: ${formatDate(task.completedAt)}`);
+      }
 
       const tags = formatTags(task.tags);
       if (tags) {

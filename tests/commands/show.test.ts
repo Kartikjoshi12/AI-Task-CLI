@@ -33,6 +33,7 @@ function seedTask(
   created: string,
   updated?: string,
   tags?: string,
+  completed?: string,
 ) {
   const d = join(dir, "tasks");
   mkdirSync(d, { recursive: true });
@@ -45,6 +46,7 @@ function seedTask(
     `updated: ${updatedLine}`,
   ];
   if (tags) front.push(`tags: ${tags}`);
+  if (completed) front.push(`completed: ${completed}`);
   const content = [
     "---",
     ...front,
@@ -81,10 +83,17 @@ describe("task show (CLI)", () => {
   });
 
   it("shows the correct checkbox marker for done tasks", () => {
-    seedTask(dir, "task-1", "done", "Pay bills", "2024-06-01T10:00:00.000Z");
+    seedTask(dir, "task-1", "done", "Pay bills", "2024-06-01T10:00:00.000Z", undefined, undefined, "2024-06-01T12:00:00.000Z");
 
     const { stdout } = runCli("show task-1", dir);
     expect(stdout).toContain("- [x] Pay bills");
+  });
+
+  it("displays completedAt when the task is done", () => {
+    seedTask(dir, "task-1", "done", "Pay bills", "2024-06-01T10:00:00.000Z", "2024-06-01T12:00:00.000Z", undefined, "2024-06-01T12:00:00.000Z");
+
+    const { stdout } = runCli("show task-1", dir);
+    expect(stdout).toContain("Completed: 2024-06-01");
   });
 
   it("shows the correct checkbox marker for doing tasks", () => {
@@ -118,11 +127,14 @@ describe("task show (CLI)", () => {
       "Fixed task",
       "2024-06-01T10:00:00.000Z",
       "2024-06-05T14:00:00.000Z",
+      undefined,
+      "2024-06-05T14:00:00.000Z",
     );
 
     const { stdout } = runCli("show task-1", dir);
     expect(stdout).toContain("Created: 2024-06-01");
     expect(stdout).toContain("Updated: 2024-06-05");
+    expect(stdout).toContain("Completed: 2024-06-05");
   });
 
   it("shows an error for a non-existent task", () => {

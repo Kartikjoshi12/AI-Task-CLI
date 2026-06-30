@@ -34,6 +34,7 @@ export class MarkdownProvider implements StorageProvider {
       status: "todo",
       createdAt: now,
       updatedAt: now,
+      completedAt: "",
       tags: "",
       content: "",
     };
@@ -65,13 +66,23 @@ export class MarkdownProvider implements StorageProvider {
     if (!existing) {
       throw new Error(`Task not found: ${id}`);
     }
+    const now = new Date().toISOString();
+    let completedAt = existing.completedAt;
+    if (input.status !== undefined) {
+      if (input.status === "done" && existing.status !== "done") {
+        completedAt = now;
+      } else if (input.status !== "done" && existing.status === "done") {
+        completedAt = "";
+      }
+    }
     const updated: Task = {
       ...existing,
       ...(input.description !== undefined && { description: input.description }),
       ...(input.status !== undefined && { status: input.status }),
       ...(input.tags !== undefined && { tags: input.tags }),
       ...(input.content !== undefined && { content: input.content }),
-      updatedAt: new Date().toISOString(),
+      completedAt,
+      updatedAt: now,
     };
     await this.writeTaskFile(updated);
     return updated;
@@ -162,6 +173,7 @@ export class MarkdownProvider implements StorageProvider {
       status,
       createdAt: frontmatter.created ?? "",
       updatedAt: frontmatter.updated ?? "",
+      completedAt: frontmatter.completed ?? "",
       tags: frontmatter.tags ?? "",
       content: contentRest,
     };
@@ -175,6 +187,9 @@ export class MarkdownProvider implements StorageProvider {
       created: task.createdAt,
       updated: task.updatedAt,
     };
+    if (task.completedAt) {
+      frontmatter.completed = task.completedAt;
+    }
     if (task.tags) {
       frontmatter.tags = task.tags;
     }

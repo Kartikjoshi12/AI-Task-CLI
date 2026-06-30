@@ -4,6 +4,7 @@ import { addCommand } from "./commands/add.js";
 import { listCommand } from "./commands/list.js";
 import { showCommand } from "./commands/show.js";
 import { updateCommand } from "./commands/update.js";
+import { doneCommand } from "./commands/done.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -15,6 +16,7 @@ export function createProgram(): Command {
   program.addCommand(listCommand);
   program.addCommand(showCommand);
   program.addCommand(updateCommand);
+  program.addCommand(doneCommand);
 
   return program;
 }

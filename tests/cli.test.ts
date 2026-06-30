@@ -95,4 +95,20 @@ describe("CLI scaffold", () => {
     const opt = cmd?.options.find((o) => o.long === "--tags");
     expect(opt).toBeDefined();
   });
+
+  it("registers the done command", () => {
+    const cmd = program.commands.find((c) => c.name() === "done");
+    expect(cmd).toBeDefined();
+  });
+
+  it("done command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "done");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("done command help mentions the task-id argument", () => {
+    const cmd = program.commands.find((c) => c.name() === "done");
+    const help = cmd?.helpInformation() ?? "";
+    expect(help).toContain("task-id");
+  });
 });
