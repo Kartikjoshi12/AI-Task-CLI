@@ -27,11 +27,13 @@ export class MarkdownProvider implements StorageProvider {
   async createTask(input: { description: string }): Promise<Task> {
     const tasks = await this.readTasks();
     const id = this.nextId(tasks);
+    const now = new Date().toISOString();
     const task: Task = {
       id,
       description: input.description,
       status: "todo",
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     };
     await this.writeTaskFile(task);
     return task;
@@ -60,6 +62,7 @@ export class MarkdownProvider implements StorageProvider {
       ...existing,
       ...(input.description !== undefined && { description: input.description }),
       ...(input.status !== undefined && { status: input.status }),
+      updatedAt: new Date().toISOString(),
     };
     await this.writeTaskFile(updated);
     return updated;
@@ -139,12 +142,22 @@ export class MarkdownProvider implements StorageProvider {
       description,
       status,
       createdAt: frontmatter.created ?? "",
+      updatedAt: frontmatter.updated ?? "",
     };
   }
 
   private formatFile(task: Task): string {
     const marker = STATUS_MARKER[task.status];
-    return `---\nid: ${task.id}\nstatus: ${task.status}\ncreated: ${task.createdAt}\n---\n- [${marker}] ${task.description}\n`;
+    return [
+      "---",
+      `id: ${task.id}`,
+      `status: ${task.status}`,
+      `created: ${task.createdAt}`,
+      `updated: ${task.updatedAt}`,
+      "---",
+      `- [${marker}] ${task.description}`,
+      "",
+    ].join("\n");
   }
 
   private nextId(tasks: Task[]): string {

@@ -22,8 +22,8 @@ function readTask(dir: string, id: string): string {
   return readFileSync(taskFile(dir, id), "utf-8");
 }
 
-function makeTask(id: string, status: string, desc: string, created?: string): string {
-  return `---\nid: ${id}\nstatus: ${status}\ncreated: ${created ?? ""}\n---\n${desc}\n`;
+function makeTask(id: string, status: string, desc: string, created?: string, updated?: string): string {
+  return `---\nid: ${id}\nstatus: ${status}\ncreated: ${created ?? ""}\nupdated: ${updated ?? created ?? ""}\n---\n${desc}\n`;
 }
 
 describe("MarkdownProvider", () => {
@@ -55,12 +55,14 @@ describe("MarkdownProvider", () => {
       expect(content).toContain("status: todo");
     });
 
-    it("assigns a created timestamp", async () => {
+    it("assigns created and updated timestamps on creation", async () => {
       const task = await provider.createTask({ description: "Timed task" });
 
       expect(task.createdAt).toBeTruthy();
       expect(() => new Date(task.createdAt)).not.toThrow();
       expect(new Date(task.createdAt).getTime()).not.toBeNaN();
+
+      expect(task.updatedAt).toBe(task.createdAt);
     });
 
     it("auto-increments task IDs", async () => {
@@ -93,6 +95,7 @@ describe("MarkdownProvider", () => {
 
       expect(updated.status).toBe("done");
       expect(updated.description).toBe("Do something");
+      expect(updated.updatedAt).not.toBe(task.updatedAt);
 
       const content = readFileSync(taskFile(dir, "task-1"), "utf-8");
       expect(content).toContain("- [x] Do something");

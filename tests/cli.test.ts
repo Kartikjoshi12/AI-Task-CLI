@@ -51,4 +51,20 @@ describe("CLI scaffold", () => {
     const opt = cmd?.options.find((o) => o.long === "--status");
     expect(opt).toBeDefined();
   });
+
+  it("registers the show command", () => {
+    const cmd = program.commands.find((c) => c.name() === "show");
+    expect(cmd).toBeDefined();
+  });
+
+  it("show command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "show");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("show command help mentions the task-id argument", () => {
+    const cmd = program.commands.find((c) => c.name() === "show");
+    const help = cmd?.helpInformation() ?? "";
+    expect(help).toContain("task-id");
+  });
 });
