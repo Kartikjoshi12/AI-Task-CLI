@@ -42,15 +42,16 @@ export class DummyProvider implements AIProvider {
   }
 
   private extractTitle(input: string): string {
-    const lower = input.toLowerCase();
-    let cleaned = input;
+    let cleaned = input.trim();
 
-    const nameMatch = lower.match(/(\w+)\s+ko\s+/);
+    // Remove "<name> ko " prefix (Hindi-style assignment)
+    const nameMatch = cleaned.match(/(\w+)\s+ko\s+/);
     if (nameMatch) {
       cleaned = cleaned.slice(nameMatch[0].length).trim();
     }
 
-    for (const kw of [
+    // Remove time keywords from anywhere in the text
+    const timeKws = [
       "kal tak",
       "kal subah",
       "kal shaam",
@@ -59,17 +60,19 @@ export class DummyProvider implements AIProvider {
       "parson",
       "today",
       "tomorrow",
-    ]) {
-      const idx = lower.indexOf(kw);
-      if (idx !== -1) {
-        cleaned = cleaned.slice(0, idx).trim();
-        break;
-      }
+    ];
+    for (const kw of timeKws) {
+      const re = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      cleaned = cleaned.replace(re, "").trim();
     }
 
+    // Remove "by " prefix left after removing time references
+    cleaned = cleaned.replace(/^by\s+/i, "").trim();
+
+    // Remove Hindi action suffixes
     const suffixes = [" banana hai", " karna hai", " karo", " banao"];
     for (const suffix of suffixes) {
-      if (lower.endsWith(suffix)) {
+      if (cleaned.toLowerCase().endsWith(suffix)) {
         cleaned = cleaned.slice(0, -suffix.length).trim();
       }
     }

@@ -86,6 +86,29 @@ export class Renderer {
     console.log(`- [${marker}] ${task.title}`);
   }
 
+  taskCreated(task: Task): void {
+    console.log("\u2713 Task Created\n");
+    console.log(`Title:     ${task.title}`);
+    console.log(`Workspace: ${task.workspace || "default"}`);
+    console.log(`Project:   ${task.project || "default"}`);
+    if (task.priority && task.priority !== "none") {
+      console.log(`Priority:  ${task.priority}`);
+    }
+    if (task.due) {
+      console.log(`Due:       ${task.due}`);
+    }
+    if (task.assignee) {
+      console.log(`Assignee:  ${task.assignee}`);
+    }
+    if (task.tags) {
+      const tags = task.tags
+        .split(",")
+        .map((t) => `#${t.trim()}`)
+        .join(" ");
+      console.log(`Tags:      ${tags}`);
+    }
+  }
+
   stats(total: number, pending: number, completed: number): void {
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
     console.log(`Total:       ${total}`);

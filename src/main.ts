@@ -13,6 +13,11 @@ import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
 import { workspaceCommand } from "./commands/workspace.js";
 import { projectCommand } from "./commands/project.js";
+import { ConfigService } from "./services/config.js";
+import { TaskService } from "./services/task.js";
+import { AIService } from "./ai/service.js";
+import { DummyProvider } from "./ai/dummy.js";
+import { Renderer } from "./renderer.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -33,6 +38,47 @@ export function createProgram(): Command {
   program.addCommand(statsCommand);
   program.addCommand(workspaceCommand);
   program.addCommand(projectCommand);
+
+  program.arguments("[text...]").action(async (texts: string[]) => {
+    const input = texts.join(" ").trim();
+    if (!input) {
+      program.help();
+      return;
+    }
+
+    const renderer = new Renderer();
+
+    try {
+      const ai = new AIService(new DummyProvider());
+      const parsed = await ai.parse(input);
+
+      if (!parsed.title) {
+        renderer.error("Could not parse a task from that input. Try being more specific.");
+        process.exit(1);
+      }
+
+      const config = new ConfigService(process.cwd());
+      const provider = config.createProvider();
+      const service = new TaskService(provider);
+      const task = await service.createTask({
+        title: parsed.title,
+        assignee: parsed.assignee || undefined,
+        due: parsed.due || undefined,
+        priority: parsed.priority !== "none" ? parsed.priority : undefined,
+        tags: parsed.tags || undefined,
+        content: parsed.content || undefined,
+        project: parsed.project || undefined,
+        dependsOn: parsed.dependsOn || undefined,
+        recurring: parsed.recurring || undefined,
+      });
+
+      renderer.taskCreated(task);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      renderer.error(message);
+      process.exit(1);
+    }
+  });
 
   return program;
 }

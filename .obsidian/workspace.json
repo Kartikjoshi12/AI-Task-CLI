@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "workspaces/default/tasks/task-1.md",
+                "file": "CLI.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "task-1"
+              "title": "CLI"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "workspaces/default/tasks/task-1.md",
+                "file": "CLI.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for task-1"
+              "title": "Backlinks for CLI"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "workspaces/default/tasks/task-1.md",
+                "file": "CLI.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from task-1"
+              "title": "Outgoing links from CLI"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "workspaces/default/tasks/task-1.md",
+                "file": "CLI.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of task-1"
+              "title": "Outline of CLI"
             }
           }
         ]
@@ -185,7 +185,11 @@
   },
   "active": "6862da923daa8d89",
   "lastOpenFiles": [
+    "tests/commands/ai-task.test.ts",
+    "ARCHITECTURE.md",
     "AI.md",
+    "AGENTS.md",
+    "workspaces/default/tasks/task-1.md",
     "tests/ai/service.test.ts",
     "src/ai/dummy.ts",
     "src/ai/service.ts",
@@ -193,7 +197,6 @@
     "src/ai/types.ts",
     "tests/ai",
     "src/ai",
-    "ARCHITECTURE.md",
     "src/services/task.ts",
     "src/renderer.ts",
     "src/services/config.ts",
@@ -205,7 +208,6 @@
     "node_modules/escape-string-regexp/readme.md",
     "node_modules/convert-source-map/README.md",
     "node_modules/ansi-styles/readme.md",
-    "workspaces/default/tasks/task-1.md",
     "node_modules/@esbuild/win32-x64/README.md",
     "node_modules/ajv/README.md",
     "node_modules/prettier/THIRD-PARTY-NOTICES.md",
@@ -218,8 +220,6 @@
     "node_modules/@emnapi/core/README.md",
     "node_modules/@eslint/config-helpers/README.md",
     "node_modules/@humanfs/core/README.md",
-    "node_modules/signal-exit/README.md",
-    "node_modules/@typescript-eslint/types/README.md",
-    "node_modules/@humanfs/node/README.md"
+    "node_modules/signal-exit/README.md"
   ]
 }

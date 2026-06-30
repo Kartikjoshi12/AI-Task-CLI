@@ -34,17 +34,17 @@ export class MarkdownProvider implements StorageProvider {
     const task: Task = {
       id,
       title: input.title,
-      content: "",
+      content: input.content ?? "",
       status: "todo",
       workspace: "",
       project: input.project ?? this.defaultProject ?? "",
-      priority: "none",
-      due: "",
-      tags: "",
-      assignee: "",
+      priority: input.priority ?? "none",
+      due: input.due ?? "",
+      tags: input.tags ?? "",
+      assignee: input.assignee ?? "",
       parent: "",
-      dependsOn: "",
-      recurring: "",
+      dependsOn: input.dependsOn ?? "",
+      recurring: input.recurring ?? "",
       createdAt: now,
       updatedAt: now,
       completedAt: "",
@@ -216,6 +216,21 @@ export class MarkdownProvider implements StorageProvider {
     }
     if (task.tags) {
       frontmatter.tags = task.tags;
+    }
+    if (task.assignee) {
+      frontmatter.assignee = task.assignee;
+    }
+    if (task.due) {
+      frontmatter.due = task.due;
+    }
+    if (task.priority && task.priority !== "none") {
+      frontmatter.priority = task.priority;
+    }
+    if (task.dependsOn) {
+      frontmatter["depends-on"] = task.dependsOn;
+    }
+    if (task.recurring) {
+      frontmatter.recurring = task.recurring;
     }
 
     const header = Object.entries(frontmatter)

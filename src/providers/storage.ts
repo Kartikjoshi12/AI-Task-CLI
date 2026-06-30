@@ -1,4 +1,4 @@
-import type { Task, TaskStatus } from "../types/task.js";
+import type { Task, TaskStatus, TaskPriority } from "../types/task.js";
 
 export interface TaskFilter {
   status?: TaskStatus;
@@ -9,6 +9,13 @@ export interface TaskFilter {
 export interface CreateTaskInput {
   title: string;
   project?: string;
+  assignee?: string;
+  due?: string;
+  priority?: TaskPriority;
+  tags?: string;
+  content?: string;
+  dependsOn?: string;
+  recurring?: string;
 }
 
 export interface UpdateTaskInput {

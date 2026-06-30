@@ -1,4 +1,4 @@
-import type { Task, TaskStatus } from "../types/task.js";
+import type { Task, TaskStatus, TaskPriority } from "../types/task.js";
 import type { StorageProvider } from "../providers/storage.js";
 
 export class TaskServiceError extends Error {
@@ -11,12 +11,31 @@ export class TaskServiceError extends Error {
 export class TaskService {
   constructor(private storage: StorageProvider) {}
 
-  async createTask(input: { title: string; project?: string }): Promise<Task> {
+  async createTask(input: {
+    title: string;
+    project?: string;
+    assignee?: string;
+    due?: string;
+    priority?: TaskPriority;
+    tags?: string;
+    content?: string;
+    dependsOn?: string;
+    recurring?: string;
+  }): Promise<Task> {
     const title = input.title.trim();
     if (!title) {
       throw new TaskServiceError("Task description cannot be empty");
     }
-    return this.storage.createTask({ title, project: input.project });
+    const fields: Record<string, unknown> = {};
+    if (input.project !== undefined) fields.project = input.project;
+    if (input.assignee !== undefined) fields.assignee = input.assignee;
+    if (input.due !== undefined) fields.due = input.due;
+    if (input.priority !== undefined) fields.priority = input.priority;
+    if (input.tags !== undefined) fields.tags = input.tags;
+    if (input.content !== undefined) fields.content = input.content;
+    if (input.dependsOn !== undefined) fields.dependsOn = input.dependsOn;
+    if (input.recurring !== undefined) fields.recurring = input.recurring;
+    return this.storage.createTask({ title, ...fields });
   }
 
   async getTask(id: string): Promise<Task> {
