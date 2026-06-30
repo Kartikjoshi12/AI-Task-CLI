@@ -7,6 +7,7 @@ export interface TaskConfig {
   workspace: string;
   project: string;
   projects: string[];
+  aiProvider: string;
 }
 
 const CONFIG_FILE = ".taskrc";
@@ -15,6 +16,7 @@ const DEFAULT_CONFIG: TaskConfig = {
   workspace: "default",
   project: "default",
   projects: ["default"],
+  aiProvider: "dummy",
 };
 
 export class ConfigService {
@@ -28,6 +30,7 @@ export class ConfigService {
         workspace: config.workspace ?? "default",
         project: config.project ?? "default",
         projects: Array.isArray(config.projects) ? config.projects : ["default"],
+        aiProvider: config.aiProvider ?? "dummy",
       };
     } catch {
       return { ...DEFAULT_CONFIG, projects: [] };
@@ -70,6 +73,17 @@ export class ConfigService {
     if (!config.projects.includes(name)) {
       config.projects.push(name);
     }
+    await this.setConfig(config);
+  }
+
+  async getAIProvider(): Promise<string> {
+    const config = await this.getConfig();
+    return config.aiProvider;
+  }
+
+  async setAIProvider(name: string): Promise<void> {
+    const config = await this.getConfig();
+    config.aiProvider = name;
     await this.setConfig(config);
   }
 

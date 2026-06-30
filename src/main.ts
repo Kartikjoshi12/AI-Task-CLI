@@ -13,10 +13,11 @@ import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
 import { workspaceCommand } from "./commands/workspace.js";
 import { projectCommand } from "./commands/project.js";
+import { configCommand } from "./commands/config.js";
 import { ConfigService } from "./services/config.js";
 import { TaskService } from "./services/task.js";
 import { AIService } from "./ai/service.js";
-import { DummyProvider } from "./ai/dummy.js";
+import { createProvider, isValidProvider } from "./ai/provider.js";
 import { Renderer } from "./renderer.js";
 
 export function createProgram(): Command {
@@ -38,6 +39,7 @@ export function createProgram(): Command {
   program.addCommand(statsCommand);
   program.addCommand(workspaceCommand);
   program.addCommand(projectCommand);
+  program.addCommand(configCommand);
 
   program.arguments("[text...]").action(async (texts: string[]) => {
     const input = texts.join(" ").trim();
@@ -49,7 +51,11 @@ export function createProgram(): Command {
     const renderer = new Renderer();
 
     try {
-      const ai = new AIService(new DummyProvider());
+      const cfgService = new ConfigService(process.cwd());
+      const cfg = await cfgService.getConfig();
+      const providerType = isValidProvider(cfg.aiProvider) ? cfg.aiProvider : "dummy";
+      const aiProvider = createProvider(providerType);
+      const ai = new AIService(aiProvider);
       const parsed = await ai.parse(input);
 
       if (!parsed.title) {
@@ -57,9 +63,8 @@ export function createProgram(): Command {
         process.exit(1);
       }
 
-      const config = new ConfigService(process.cwd());
-      const provider = config.createProvider();
-      const service = new TaskService(provider);
+      const storageProvider = cfgService.createProvider();
+      const service = new TaskService(storageProvider);
       const task = await service.createTask({
         title: parsed.title,
         assignee: parsed.assignee || undefined,

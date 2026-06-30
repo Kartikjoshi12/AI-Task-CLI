@@ -263,4 +263,20 @@ describe("CLI scaffold", () => {
     const sub = cmd?.commands.find((c) => c.name() === "current");
     expect(sub).toBeDefined();
   });
+
+  it("registers the config command", () => {
+    const cmd = program.commands.find((c) => c.name() === "config");
+    expect(cmd).toBeDefined();
+  });
+
+  it("config command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "config");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("config command has ai.provider subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "config");
+    const sub = cmd?.commands.find((c) => c.name() === "ai.provider");
+    expect(sub).toBeDefined();
+  });
 });
