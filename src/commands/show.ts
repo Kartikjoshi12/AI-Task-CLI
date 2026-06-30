@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 
 function formatDate(iso: string): string {
   if (!iso) return "-";
@@ -24,7 +24,7 @@ export const showCommand = new Command("show")
       process.exit(1);
     }
 
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const task = await provider.getTaskById(trimmed);

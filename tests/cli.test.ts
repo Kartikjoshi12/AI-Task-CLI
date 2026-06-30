@@ -195,4 +195,38 @@ describe("CLI scaffold", () => {
     const cmd = program.commands.find((c) => c.name() === "stats");
     expect(cmd?.description()).toBeTruthy();
   });
+
+  it("registers the workspace command", () => {
+    const cmd = program.commands.find((c) => c.name() === "workspace");
+    expect(cmd).toBeDefined();
+  });
+
+  it("workspace command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "workspace");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("workspace command has list subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "workspace");
+    const sub = cmd?.commands.find((c) => c.name() === "list");
+    expect(sub).toBeDefined();
+  });
+
+  it("workspace command has create subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "workspace");
+    const sub = cmd?.commands.find((c) => c.name() === "create");
+    expect(sub).toBeDefined();
+  });
+
+  it("workspace command has use subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "workspace");
+    const sub = cmd?.commands.find((c) => c.name() === "use");
+    expect(sub).toBeDefined();
+  });
+
+  it("workspace command has current subcommand", () => {
+    const cmd = program.commands.find((c) => c.name() === "workspace");
+    const sub = cmd?.commands.find((c) => c.name() === "current");
+    expect(sub).toBeDefined();
+  });
 });

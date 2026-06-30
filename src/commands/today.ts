@@ -1,11 +1,11 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 import { printTaskTable, formatDate } from "../display.js";
 
 export const todayCommand = new Command("today")
   .description("Show tasks created today")
   .action(async () => {
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const all = await provider.listTasks();

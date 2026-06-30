@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { createInterface } from "node:readline";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 
 function promptYesNo(question: string): Promise<boolean> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
@@ -23,7 +23,7 @@ export const deleteCommand = new Command("delete")
       process.exit(1);
     }
 
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const existing = await provider.getTaskById(trimmed);

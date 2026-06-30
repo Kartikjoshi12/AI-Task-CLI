@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 import { printTaskTable } from "../display.js";
 import type { TaskStatus } from "../types/task.js";
 
@@ -7,7 +7,7 @@ export const listCommand = new Command("list")
   .description("List all tasks")
   .option("-s, --status <status>", "Filter by status: todo, doing, done")
   .action(async (options: { status?: string }) => {
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const validStatus = isValidStatus(options.status) ? options.status : undefined;

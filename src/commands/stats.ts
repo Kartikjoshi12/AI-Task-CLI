@@ -1,10 +1,10 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 
 export const statsCommand = new Command("stats")
   .description("Display task statistics")
   .action(async () => {
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const all = await provider.listTasks();

@@ -1,10 +1,11 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 
 export const addCommand = new Command("add")
   .argument("<description>", "task description")
+  .option("-w, --workspace <workspace>", "Override the active workspace")
   .description("Create a new task")
-  .action(async (description: string) => {
+  .action(async (description: string, options: { workspace?: string }) => {
     const trimmed = description.trim();
     if (!trimmed) {
       console.error("Error: Task description cannot be empty");
@@ -12,7 +13,7 @@ export const addCommand = new Command("add")
     }
 
     try {
-      const provider = new MarkdownProvider(process.cwd());
+      const provider = createProvider(process.cwd(), options.workspace);
       const task = await provider.createTask({ description: trimmed });
       console.log(`Created task ${task.id}`);
     } catch (err) {

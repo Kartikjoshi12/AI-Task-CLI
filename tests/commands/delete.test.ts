@@ -29,7 +29,7 @@ function runCli(args: string, cwd: string, input?: string): { stdout: string; st
 }
 
 function seedTask(dir: string, id: string) {
-  const d = join(dir, "tasks");
+  const d = join(dir, "workspaces", "default", "tasks");
   mkdirSync(d, { recursive: true });
   writeFileSync(
     join(d, `${id}.md`),
@@ -65,7 +65,7 @@ describe("task delete (CLI)", () => {
 
     expect(stderr).toBe("");
     expect(stdout).toContain("Deleted task task-1");
-    expect(existsSync(join(dir, "tasks", "task-1.md"))).toBe(false);
+    expect(existsSync(join(dir, "workspaces", "default", "tasks", "task-1.md"))).toBe(false);
   });
 
   it("deletes a task with confirmation (y)", () => {
@@ -75,7 +75,7 @@ describe("task delete (CLI)", () => {
 
     expect(stderr).toBe("");
     expect(stdout).toContain("Deleted task task-1");
-    expect(existsSync(join(dir, "tasks", "task-1.md"))).toBe(false);
+    expect(existsSync(join(dir, "workspaces", "default", "tasks", "task-1.md"))).toBe(false);
   });
 
   it("cancels deletion when response is n", () => {
@@ -85,7 +85,7 @@ describe("task delete (CLI)", () => {
 
     expect(stderr).toBe("");
     expect(stdout).toContain("Cancelled.");
-    expect(existsSync(join(dir, "tasks", "task-1.md"))).toBe(true);
+    expect(existsSync(join(dir, "workspaces", "default", "tasks", "task-1.md"))).toBe(true);
   });
 
   it("shows an error for a non-existent task", () => {

@@ -20,8 +20,8 @@ const LINE_REGEX = /^- \[([ /x])\] (.+)$/;
 export class MarkdownProvider implements StorageProvider {
   private tasksDir: string;
 
-  constructor(vaultPath: string) {
-    this.tasksDir = join(vaultPath, "tasks");
+  constructor(vaultPath: string, workspace: string = "default") {
+    this.tasksDir = join(vaultPath, "workspaces", workspace, "tasks");
   }
 
   async createTask(input: { description: string }): Promise<Task> {

@@ -9,11 +9,11 @@ function tempDir(): string {
 }
 
 function taskFile(dir: string, id: string): string {
-  return join(dir, "tasks", `${id}.md`);
+  return join(dir, "workspaces", "default", "tasks", `${id}.md`);
 }
 
 function writeTask(dir: string, id: string, content: string): void {
-  const d = join(dir, "tasks");
+  const d = join(dir, "workspaces", "default", "tasks");
   mkdirSync(d, { recursive: true });
   writeFileSync(join(d, `${id}.md`), content, "utf-8");
 }

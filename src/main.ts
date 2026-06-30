@@ -11,6 +11,7 @@ import { pendingCommand } from "./commands/pending.js";
 import { completedCommand } from "./commands/completed.js";
 import { todayCommand } from "./commands/today.js";
 import { statsCommand } from "./commands/stats.js";
+import { workspaceCommand } from "./commands/workspace.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -29,6 +30,7 @@ export function createProgram(): Command {
   program.addCommand(completedCommand);
   program.addCommand(todayCommand);
   program.addCommand(statsCommand);
+  program.addCommand(workspaceCommand);
 
   return program;
 }

@@ -31,7 +31,7 @@ function seedTask(
   status: string,
   description: string,
 ) {
-  const d = join(dir, "tasks");
+  const d = join(dir, "workspaces", "default", "tasks");
   mkdirSync(d, { recursive: true });
   const marker = status === "done" ? "x" : status === "doing" ? "/" : " ";
   const content = [
@@ -66,7 +66,7 @@ describe("task done (CLI)", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("Marked task task-1 as done.");
 
-    const content = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const content = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(content).toContain("- [x] Fix OTP validation");
     expect(content).toContain("status: done");
   });
@@ -77,7 +77,7 @@ describe("task done (CLI)", () => {
     const { stdout } = runCli("done task-1", dir);
     expect(stdout).toContain("Marked task task-1 as done.");
 
-    const content = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const content = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(content).toContain("- [x] Work in progress");
     expect(content).toContain("status: done");
   });
@@ -92,7 +92,7 @@ describe("task done (CLI)", () => {
   });
 
   it("preserves title, tags, and content when marking done", () => {
-    const d = join(dir, "tasks");
+    const d = join(dir, "workspaces", "default", "tasks");
     mkdirSync(d, { recursive: true });
     const content = [
       "---",
@@ -110,7 +110,7 @@ describe("task done (CLI)", () => {
 
     runCli("done task-1", dir);
 
-    const fileContent = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const fileContent = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(fileContent).toContain("tags: bug, backend");
     expect(fileContent).toContain("Fix login bug");
     expect(fileContent).toContain("Some detailed notes about this bug.");
@@ -121,7 +121,7 @@ describe("task done (CLI)", () => {
 
     runCli("done task-1", dir);
 
-    const content = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const content = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(content).toContain("completed:");
   });
 

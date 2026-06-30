@@ -26,7 +26,7 @@ function runCli(args: string, cwd: string): { stdout: string; stderr: string } {
 }
 
 function seedTask(dir: string, id: string, description: string) {
-  const d = join(dir, "tasks");
+  const d = join(dir, "workspaces", "default", "tasks");
   mkdirSync(d, { recursive: true });
   const content = [
     "---",
@@ -60,7 +60,7 @@ describe("task update (CLI)", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("Updated task task-1");
 
-    const content = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const content = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(content).toContain("- [ ] New title");
     expect(content).not.toContain("Old title");
   });
@@ -72,7 +72,7 @@ describe("task update (CLI)", () => {
 
     expect(stdout).toContain("Updated task task-1");
 
-    const content = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const content = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(content).toContain("Some detailed notes.");
   });
 
@@ -83,7 +83,7 @@ describe("task update (CLI)", () => {
 
     expect(stdout).toContain("Updated task task-1");
 
-    const content = readFileSync(join(dir, "tasks", "task-1.md"), "utf-8");
+    const content = readFileSync(join(dir, "workspaces", "default", "tasks", "task-1.md"), "utf-8");
     expect(content).toContain("tags: bug, backend");
   });
 

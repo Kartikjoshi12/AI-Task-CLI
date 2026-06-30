@@ -42,7 +42,7 @@ describe("task add (CLI)", () => {
     expect(stderr).toBe("");
     expect(stdout).toContain("Created task task-1");
 
-    const taskFile = join(dir, "tasks", "task-1.md");
+    const taskFile = join(dir, "workspaces", "default", "tasks", "task-1.md");
     expect(existsSync(taskFile)).toBe(true);
     const content = readFileSync(taskFile, "utf-8");
     expect(content).toContain("- [ ] Buy groceries");

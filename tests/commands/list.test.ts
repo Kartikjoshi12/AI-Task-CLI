@@ -26,7 +26,7 @@ function runCli(args: string, cwd: string): { stdout: string; stderr: string } {
 }
 
 function seedTask(dir: string, id: string, status: string, description: string, created: string) {
-  const d = join(dir, "tasks");
+  const d = join(dir, "workspaces", "default", "tasks");
   mkdirSync(d, { recursive: true });
   const content = `---\nid: ${id}\nstatus: ${status}\ncreated: ${created}\n---\n- [${status === "done" ? "x" : status === "doing" ? "/" : " "}] ${description}\n`;
   writeFileSync(join(d, `${id}.md`), content, "utf-8");

@@ -33,7 +33,7 @@ function seedTask(
   content?: string,
   tags?: string,
 ) {
-  const d = join(dir, "tasks");
+  const d = join(dir, "workspaces", "default", "tasks");
   mkdirSync(d, { recursive: true });
   const marker = status === "done" ? "x" : status === "doing" ? "/" : " ";
   const front = [

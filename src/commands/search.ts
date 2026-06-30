@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 import { printTaskTable } from "../display.js";
 import type { TaskStatus } from "../types/task.js";
 
@@ -14,7 +14,7 @@ export const searchCommand = new Command("search")
       process.exit(1);
     }
 
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const validStatus = isValidStatus(options.status) ? options.status : undefined;

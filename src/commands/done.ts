@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { MarkdownProvider } from "../providers/markdown.js";
+import { createProvider } from "../config.js";
 
 export const doneCommand = new Command("done")
   .argument("<task-id>", "task ID to mark as done")
@@ -11,7 +11,7 @@ export const doneCommand = new Command("done")
       process.exit(1);
     }
 
-    const provider = new MarkdownProvider(process.cwd());
+    const provider = createProvider(process.cwd());
 
     try {
       const existing = await provider.getTaskById(trimmed);
