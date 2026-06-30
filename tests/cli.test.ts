@@ -133,4 +133,26 @@ describe("CLI scaffold", () => {
     const help = cmd?.helpInformation() ?? "";
     expect(help).toContain("task-id");
   });
+
+  it("registers the search command", () => {
+    const cmd = program.commands.find((c) => c.name() === "search");
+    expect(cmd).toBeDefined();
+  });
+
+  it("search command has a description", () => {
+    const cmd = program.commands.find((c) => c.name() === "search");
+    expect(cmd?.description()).toBeTruthy();
+  });
+
+  it("search command has a --status option", () => {
+    const cmd = program.commands.find((c) => c.name() === "search");
+    const opt = cmd?.options.find((o) => o.long === "--status");
+    expect(opt).toBeDefined();
+  });
+
+  it("search command help mentions the query argument", () => {
+    const cmd = program.commands.find((c) => c.name() === "search");
+    const help = cmd?.helpInformation() ?? "";
+    expect(help).toContain("query");
+  });
 });

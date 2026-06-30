@@ -6,6 +6,7 @@ import { showCommand } from "./commands/show.js";
 import { updateCommand } from "./commands/update.js";
 import { doneCommand } from "./commands/done.js";
 import { deleteCommand } from "./commands/delete.js";
+import { searchCommand } from "./commands/search.js";
 
 export function createProgram(): Command {
   const program = new Command();
@@ -19,6 +20,7 @@ export function createProgram(): Command {
   program.addCommand(updateCommand);
   program.addCommand(doneCommand);
   program.addCommand(deleteCommand);
+  program.addCommand(searchCommand);
 
   return program;
 }

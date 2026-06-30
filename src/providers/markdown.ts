@@ -107,7 +107,12 @@ export class MarkdownProvider implements StorageProvider {
     }
     if (filter?.keyword) {
       const lower = filter.keyword.toLowerCase();
-      tasks = tasks.filter((t) => t.description.toLowerCase().includes(lower));
+      tasks = tasks.filter(
+        (t) =>
+          t.description.toLowerCase().includes(lower) ||
+          t.content.toLowerCase().includes(lower) ||
+          t.tags.toLowerCase().includes(lower),
+      );
     }
     return tasks;
   }
