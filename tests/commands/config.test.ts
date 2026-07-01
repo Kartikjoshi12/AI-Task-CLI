@@ -122,12 +122,11 @@ describe("AI provider switching end-to-end", () => {
     expect(stdout).toContain("Task Created");
   });
 
-  it("shows error when using unimplemented provider", () => {
+  it("shows error when using gemini without API key", () => {
     runCli("config ai.provider gemini", dir);
 
     const { stderr } = runCli(`"Test task"`, dir);
-    expect(stderr).toContain("not configured");
-    expect(stderr).toContain("gemini");
+    expect(stderr).toContain("Gemini API key not found");
   });
 
   it("switches back to dummy and works again", () => {

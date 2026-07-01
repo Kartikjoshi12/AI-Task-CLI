@@ -24,12 +24,15 @@ export function isValidProvider(value: string): value is AIProviderType {
   return AI_PROVIDER_TYPES.includes(value as AIProviderType);
 }
 
-export function createProvider(type: AIProviderType): AIProvider {
+export function createProvider(
+  type: AIProviderType,
+  config?: { geminiApiKey?: string },
+): AIProvider {
   switch (type) {
     case "dummy":
       return new DummyProvider();
     case "gemini":
-      return new GeminiProvider();
+      return new GeminiProvider(config?.geminiApiKey);
     case "openai":
       return new OpenAIProvider();
     case "claude":

@@ -51,7 +51,45 @@ A local-only provider that uses simple keyword matching. Useful for development,
 - Extracts `assignee` from `<name> ko` patterns
 - Recognises Hindi/English time keywords: `kal`, `aaj`, `parson`, `today`, `tomorrow`
 - Detects priority: `urgent`, `jaldi`, `important`, `low`
-- Detects tags: `bug`, `feature`, `fix`
+  - Detects tags: `bug`, `feature`, `fix`
+
+### GeminiProvider
+
+Connects to the Google Gemini API (`gemini-2.0-flash`) for natural language parsing.
+
+#### Setup
+
+1. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey).
+2. Set it via one of:
+   - Environment variable: `export GEMINI_API_KEY=<your-key>`
+   - Config file: add `"geminiApiKey": "<your-key>"` to `.taskrc`
+3. Switch to the Gemini provider:
+   ```bash
+   task config ai.provider gemini
+   ```
+4. Verify:
+   ```bash
+   task "Buy groceries tomorrow"
+   ```
+
+The API key is resolved in order: constructor argument > `GEMINI_API_KEY` env var > (future: `.taskrc` config).
+
+#### How It Works
+
+1. Sends a structured system prompt + user input to Gemini.
+2. Gemini returns a JSON object matching `ParseResult`.
+3. The provider parses and validates the JSON.
+4. Missing or invalid fields fall back to safe defaults (`""`, `"medium"`).
+
+#### Error Handling
+
+| Scenario | Error Message |
+|---|---|
+| No API key configured | `Gemini API key not found. Set GEMINI_API_KEY...` |
+| Network failure | `Failed to call Gemini API` |
+| HTTP error (403, 429, etc.) | `Gemini API error (status): detail` |
+| Empty response | `Gemini returned an empty response. Try again.` |
+| Invalid JSON | `Gemini returned invalid JSON. Try rephrasing...` |
 
 ## Creating a Custom Provider
 
@@ -75,7 +113,8 @@ const service = new AIService(new MyProvider());
 src/
 ├── ai/
 │   ├── types.ts      — ParseResult type
-│   ├── provider.ts   — AIProvider interface
+│   ├── provider.ts   — AIProvider interface & factory
 │   ├── service.ts    — AIService
-│   └── dummy.ts      — DummyProvider
+│   ├── dummy.ts      — DummyProvider (keyword matching)
+│   └── gemini.ts     — GeminiProvider (Google Gemini API)
 ```

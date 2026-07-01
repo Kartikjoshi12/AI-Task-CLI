@@ -19,15 +19,29 @@ describe("createProvider", () => {
     expect(result.title).toBe("test");
   });
 
-  it.each(["gemini", "openai", "claude", "ollama"] as const)(
-    "throws NotConfiguredError for %s provider",
-    async (type) => {
-      const provider = createProvider(type);
-      await expect(provider.parse("test")).rejects.toThrow(NotConfiguredError);
-    },
-  );
+  it("throws NotConfiguredError for openai provider", async () => {
+    const provider = createProvider("openai");
+    await expect(provider.parse("test")).rejects.toThrow(NotConfiguredError);
+  });
 
-  it.each(["gemini", "openai", "claude", "ollama"] as const)(
+  it("throws NotConfiguredError for claude provider", async () => {
+    const provider = createProvider("claude");
+    await expect(provider.parse("test")).rejects.toThrow(NotConfiguredError);
+  });
+
+  it("throws NotConfiguredError for ollama provider", async () => {
+    const provider = createProvider("ollama");
+    await expect(provider.parse("test")).rejects.toThrow(NotConfiguredError);
+  });
+
+  it("throws API key error for gemini provider", async () => {
+    const provider = createProvider("gemini");
+    await expect(provider.parse("test")).rejects.toThrow(
+      "Gemini API key not found",
+    );
+  });
+
+  it.each(["openai", "claude", "ollama"] as const)(
     "shows friendly message for %s provider",
     async (type) => {
       const provider = createProvider(type);

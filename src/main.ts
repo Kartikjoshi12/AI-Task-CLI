@@ -54,7 +54,7 @@ export function createProgram(): Command {
       const cfgService = new ConfigService(process.cwd());
       const cfg = await cfgService.getConfig();
       const providerType = isValidProvider(cfg.aiProvider) ? cfg.aiProvider : "dummy";
-      const aiProvider = createProvider(providerType);
+      const aiProvider = createProvider(providerType, { geminiApiKey: cfg.geminiApiKey });
       const ai = new AIService(aiProvider);
       const parsed = await ai.parse(input);
 

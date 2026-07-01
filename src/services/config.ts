@@ -8,6 +8,7 @@ export interface TaskConfig {
   project: string;
   projects: string[];
   aiProvider: string;
+  geminiApiKey?: string;
 }
 
 const CONFIG_FILE = ".taskrc";
