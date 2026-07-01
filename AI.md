@@ -91,6 +91,46 @@ The API key is resolved in order: constructor argument > `GEMINI_API_KEY` env va
 | Empty response | `Gemini returned an empty response. Try again.` |
 | Invalid JSON | `Gemini returned invalid JSON. Try rephrasing...` |
 
+### OpenRouterProvider
+
+Connects to the OpenRouter API (OpenAI‑compatible endpoint) for natural language parsing. Default model: `deepseek/deepseek-chat-v3.1`.
+
+#### Setup
+
+1. Get an OpenRouter API key from [openrouter.ai/keys](https://openrouter.ai/keys).
+2. Set it via one of:
+   - Environment variable: `export OPENROUTER_API_KEY=<your-key>`
+   - Config file: add `"openrouterApiKey": "<your-key>"` to `.taskrc`
+3. (Optional) Override the model:
+   - Environment variable: `export OPENROUTER_MODEL=anthropic/claude-3.5-sonnet`
+   - Config file: add `"openrouterModel": "<model>"` to `.taskrc`
+4. Switch to the OpenRouter provider:
+   ```bash
+   task config ai.provider openrouter
+   ```
+5. Verify:
+   ```bash
+   task "Buy groceries tomorrow"
+   ```
+
+#### How It Works
+
+1. Sends a system prompt + user message to the OpenRouter Chat Completions API.
+2. Uses `response_format: { type: "json_object" }` to force JSON output.
+3. Parses and validates the JSON into a `ParseResult`.
+4. Missing or invalid fields fall back to safe defaults (`""`, `"medium"`).
+
+#### Error Handling
+
+| Scenario | Error Message |
+|---|---|
+| No API key configured | `OpenRouter API key not found. Set OPENROUTER_API_KEY...` |
+| Network failure | `Failed to call OpenRouter API` |
+| HTTP error (401, 402, 429, etc.) | `OpenRouter API error (status): detail` |
+| Empty response | `OpenRouter returned an empty response. Try again.` |
+| Invalid JSON | `OpenRouter returned invalid JSON. Try rephrasing...` |
+| Rate‑limited / server error | Auto‑retries up to 2 times with exponential backoff |
+
 ## Creating a Custom Provider
 
 ```typescript
@@ -112,9 +152,10 @@ const service = new AIService(new MyProvider());
 ```
 src/
 ├── ai/
-│   ├── types.ts      — ParseResult type
-│   ├── provider.ts   — AIProvider interface & factory
-│   ├── service.ts    — AIService
-│   ├── dummy.ts      — DummyProvider (keyword matching)
-│   └── gemini.ts     — GeminiProvider (Google Gemini API)
+│   ├── types.ts       — ParseResult type
+│   ├── provider.ts    — AIProvider interface & factory
+│   ├── service.ts     — AIService
+│   ├── dummy.ts       — DummyProvider (keyword matching)
+│   ├── gemini.ts      — GeminiProvider (Google Gemini API)
+│   └── openrouter.ts  — OpenRouterProvider (OpenRouter API)
 ```

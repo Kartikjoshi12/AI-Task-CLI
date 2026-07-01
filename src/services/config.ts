@@ -9,6 +9,9 @@ export interface TaskConfig {
   projects: string[];
   aiProvider: string;
   geminiApiKey?: string;
+  geminiModel?: string;
+  openrouterApiKey?: string;
+  openrouterModel?: string;
 }
 
 const CONFIG_FILE = ".taskrc";

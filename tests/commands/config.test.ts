@@ -83,6 +83,13 @@ describe("task config (CLI)", () => {
     expect(config.aiProvider).toBe("ollama");
   });
 
+  it("sets ai.provider to openrouter", () => {
+    runCli("config ai.provider openrouter", dir);
+
+    const config = JSON.parse(readFileSync(configFile(dir), "utf-8"));
+    expect(config.aiProvider).toBe("openrouter");
+  });
+
   it("sets ai.provider back to dummy", () => {
     runCli("config ai.provider gemini", dir);
     runCli("config ai.provider dummy", dir);

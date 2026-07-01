@@ -41,6 +41,13 @@ describe("createProvider", () => {
     );
   });
 
+  it("throws API key error for openrouter provider", async () => {
+    const provider = createProvider("openrouter");
+    await expect(provider.parse("test")).rejects.toThrow(
+      "OpenRouter API key not found",
+    );
+  });
+
   it.each(["openai", "claude", "ollama"] as const)(
     "shows friendly message for %s provider",
     async (type) => {
@@ -76,6 +83,7 @@ describe("AI_PROVIDER_TYPES", () => {
     expect(AI_PROVIDER_TYPES).toEqual([
       "dummy",
       "gemini",
+      "openrouter",
       "openai",
       "claude",
       "ollama",
